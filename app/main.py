@@ -1,9 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_classic.chains import RetrievalQA
+from langchain_ollama import ChatOllama
 from dotenv import load_dotenv
 import os
 
@@ -17,36 +16,110 @@ embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
 # 2. Load the existing ChromaDB from disk
 vector_db = Chroma(
-    persist_directory="db_storage/chroma_db", 
+    persist_directory="db_storage/chroma_db",
     embedding_function=embeddings
 )
 
-# 3. Initialize Gemini 1.5 Flash (The Reasoning Engine)
-llm = ChatGoogleGenerativeAI(
-    model="gemini-3-flash",
-    google_api_key=os.getenv("GOOGLE_API_KEY"),
-    temperature=0.2 # Lower temperature = more factual, less "creative"
+# 3. Initialize Ollama LLM (local)
+ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2")
+ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
+print(f"[EasyGov] Using Ollama model: {ollama_model} @ {ollama_base_url}")
+
+llm = ChatOllama(
+    model=ollama_model,
+    base_url=ollama_base_url,
+    temperature=0.2,
 )
 
-# 4. Create the Retrieval Chain
-# This connects the Vector DB search to the LLM
-qa_chain = RetrievalQA.from_chain_type(
-    llm=llm,
-    chain_type="stuff",
-    retriever=vector_db.as_retriever(search_kwargs={"k": 3}) # Get top 3 chunks
-)
+# 4. Retrieval settings (RAG)
+retriever_k = int(os.getenv("RETRIEVER_K", "6"))
+
 
 class QueryRequest(BaseModel):
-    question: str
+    question: str | None = None
+    query: str | None = None
+    message: str | None = None
+    debug: bool = False
+
 
 @app.post("/ask")
 async def ask_government_bot(request: QueryRequest):
-    response = qa_chain.invoke(request.question)
-    return {"answer": response["result"]}
+    user_question = request.question or request.query or request.message
+
+    if not user_question:
+        raise HTTPException(
+            status_code=422,
+            detail="Provide one of: 'question', 'query', or 'message' in JSON body.",
+        )
+
+    try:
+        # Use similarity_search() to get documents and metadata
+        docs = vector_db.similarity_search(user_question, k=retriever_k)
+        
+        # Extract unique sources from metadata
+        # ChromaDB usually stores the path in 'source'
+        sources = []
+        for d in docs:
+            source_path = d.metadata.get("source", "Unknown Document")
+            # Clean up the path to show just the filename
+            filename = os.path.basename(source_path)
+            if filename not in sources:
+                sources.append(filename)
+
+        context = "\n\n".join(
+            getattr(d, "page_content", "") for d in docs if getattr(d, "page_content", "")
+        )
+
+        strict_prompt = (
+            "You are EasyGov Nepal, a professional government assistant.\n"
+            "Your task is to provide a structured, bulleted answer in ENGLISH based on the CONTEXT provided.\n"
+            "Follow these rules:\n"
+            "1. Translate any Nepali information from the context into clear English.\n"
+            "2. Use bullet points and bold headers for readability.\n"
+            "3. If the context is missing specific details, state clearly: 'I couldn't find that specific info.'\n"
+            "4. Do not guess or use external knowledge.\n\n"
+            f"CONTEXT (might be in Nepali or English):\n{context}\n\n"
+            f"QUESTION:\n{user_question}\n"
+            "ANSWER IN ENGLISH:"
+        )
+
+        llm_result = llm.invoke(strict_prompt)
+        answer_text = getattr(llm_result, "content", None) or str(llm_result)
+
+        # Build the final response
+        response_data = {
+            "answer": answer_text,
+            "sources": sources
+        }
+
+        if request.debug:
+            response_data["retrieved_chunks"] = [
+                {
+                    "metadata": getattr(d, "metadata", None),
+                    "text_preview": (getattr(d, "page_content", "") or "")[:800],
+                }
+                for d in docs
+            ]
+
+        return response_data
+
+    except Exception as e:
+        error_text = str(e)
+        if "Connection refused" in error_text or "Failed to connect" in error_text:
+            raise HTTPException(
+                status_code=503,
+                detail=(
+                    "Cannot connect to Ollama. Start Ollama and run "
+                    f"'ollama pull {ollama_model}', then retry."
+                ),
+            ) from e
+        raise HTTPException(status_code=500, detail=error_text) from e
+
 
 @app.get("/")
 def home():
     return {"status": "EasyGov API is Running"}
+
 
 if __name__ == "__main__":
     import uvicorn
