@@ -59,4 +59,4 @@ if st.button("Ask Bot"):
 
 # Footer
 st.markdown("---")
-st.caption("EasyGov Nepal (Experimental RAG System) • Powered by Llama 3.2 & ChromaDB")
+st.caption("EasyGov Nepal (Experimental RAG System) • Powered by openai & ChromaDB")

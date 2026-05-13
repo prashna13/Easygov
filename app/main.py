@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
-from langchain_ollama import ChatOllama
+from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 import os
 
@@ -20,14 +20,16 @@ vector_db = Chroma(
     embedding_function=embeddings
 )
 
-# 3. Initialize Ollama LLM (local)
-ollama_model = os.getenv("OLLAMA_MODEL", "llama3.2")
-ollama_base_url = os.getenv("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-print(f"[EasyGov] Using Ollama model: {ollama_model} @ {ollama_base_url}")
+# 3. Initialize OpenRouter LLM
+openrouter_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b")
+openrouter_base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
+openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
+print(f"[EasyGov] Using OpenRouter model: {openrouter_model} @ {openrouter_base_url}")
 
-llm = ChatOllama(
-    model=ollama_model,
-    base_url=ollama_base_url,
+llm = ChatOpenAI(
+    model=openrouter_model,
+    base_url=openrouter_base_url,
+    api_key=openrouter_api_key,
     temperature=0.2,
 )
 
@@ -55,13 +57,11 @@ async def ask_government_bot(request: QueryRequest):
     try:
         # Use similarity_search() to get documents and metadata
         docs = vector_db.similarity_search(user_question, k=retriever_k)
-        
+
         # Extract unique sources from metadata
-        # ChromaDB usually stores the path in 'source'
         sources = []
         for d in docs:
             source_path = d.metadata.get("source", "Unknown Document")
-            # Clean up the path to show just the filename
             filename = os.path.basename(source_path)
             if filename not in sources:
                 sources.append(filename)
@@ -105,13 +105,15 @@ async def ask_government_bot(request: QueryRequest):
 
     except Exception as e:
         error_text = str(e)
+        if "401" in error_text or "Unauthorized" in error_text:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid OpenRouter API key. Check your OPENROUTER_API_KEY in .env",
+            ) from e
         if "Connection refused" in error_text or "Failed to connect" in error_text:
             raise HTTPException(
                 status_code=503,
-                detail=(
-                    "Cannot connect to Ollama. Start Ollama and run "
-                    f"'ollama pull {ollama_model}', then retry."
-                ),
+                detail="Cannot connect to OpenRouter. Check your internet connection and retry.",
             ) from e
         raise HTTPException(status_code=500, detail=error_text) from e
 
