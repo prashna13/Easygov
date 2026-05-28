@@ -1,0 +1,50 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.Easygov" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Color Palette -->
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorOnPrimary">@color/onPrimary_light</item>
+        <item name="colorPrimaryContainer">@color/primaryContainer_light</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainer_light</item>
+
+        <item name="colorSecondary">@color/secondary_light</item>
+        <item name="colorOnSecondary">@color/onSecondary_light</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainer_light</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainer_light</item>
+
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorOnBackground">@color/onBackground_light</item>
+        <item name="colorSurface">@color/surface_light</item>
+        <item name="colorOnSurface">@color/onSurface_light</item>
+        <item name="colorSurfaceVariant">@color/surfaceVariant_light</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant_light</item>
+        <item name="colorOutline">@color/outline_light</item>
+
+        <!-- Typography -->
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Easygov.HeadlineLarge</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Easygov.TitleLarge</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Easygov.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Easygov.BodyMedium</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Easygov.LabelLarge</item>
+
+        <!-- Shapes -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Easygov.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Easygov.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Easygov.LargeComponent</item>
+
+        <!-- Component Specific Styles -->
+        <item name="materialCardViewStyle">@style/Widget.Easygov.Card</item>
+        <item name="materialButtonStyle">@style/Widget.Easygov.Button</item>
+    </style>
+
+    <style name="Theme.Easygov" parent="Base.Theme.Easygov" />
+
+    <style name="Widget.Easygov.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Card</item>
+        <item name="cardBackgroundColor">@color/surface_light</item>
+    </style>
+
+    <style name="Widget.Easygov.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Button</item>
+    </style>
+</resources>
