@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_dark">#1A1C1E</color>
+    <color name="background_light">#F8F9FA</color>
+    <color name="black">#FF000000</color>
+    <color name="onBackground_dark">#E2E2E6</color>
+    <color name="onBackground_light">#1A1C1E</color>
+    <color name="onPrimaryContainer_dark">#D6E3FF</color>
+    <color name="onPrimaryContainer_light">#001B3E</color>
+    <color name="onPrimary_dark">#002F64</color>
+    <color name="onPrimary_light">#FFFFFF</color>
+    <color name="onSecondaryContainer_dark">#CCE8ED</color>
+    <color name="onSecondaryContainer_light">#051F23</color>
+    <color name="onSecondary_dark">#1B3439</color>
+    <color name="onSecondary_light">#FFFFFF</color>
+    <color name="onSurfaceVariant_dark">#C4C6D0</color>
+    <color name="onSurfaceVariant_light">#44474E</color>
+    <color name="onSurface_dark">#E2E2E6</color>
+    <color name="onSurface_light">#1A1C1E</color>
+    <color name="outline_dark">#8E9099</color>
+    <color name="outline_light">#74777F</color>
+    <color name="primaryContainer_dark">#00478F</color>
+    <color name="primaryContainer_light">#D6E3FF</color>
+    <color name="primary_dark">#D6E3FF</color>
+    <color name="primary_light">#1B3D6D</color>
+    <color name="secondaryContainer_dark">#324B50</color>
+    <color name="secondaryContainer_light">#CCE8ED</color>
+    <color name="secondary_dark">#B1CBCE</color>
+    <color name="secondary_light">#4A6367</color>
+    <color name="surfaceVariant_dark">#44474E</color>
+    <color name="surfaceVariant_light">#E0E2EC</color>
+    <color name="surface_dark">#1A1C1E</color>
+    <color name="surface_light">#FDFBFF</color>
+    <color name="white">#FFFFFFFF</color>
+    <string name="app_name">Easygov</string>
+    <style name="Base.Theme.Easygov" parent="Theme.Material3.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/primary_light</item>
+        <item name="colorOnPrimary">@color/onPrimary_light</item>
+        <item name="colorPrimaryContainer">@color/primaryContainer_light</item>
+        <item name="colorOnPrimaryContainer">@color/onPrimaryContainer_light</item>
+
+        <item name="colorSecondary">@color/secondary_light</item>
+        <item name="colorOnSecondary">@color/onSecondary_light</item>
+        <item name="colorSecondaryContainer">@color/secondaryContainer_light</item>
+        <item name="colorOnSecondaryContainer">@color/onSecondaryContainer_light</item>
+
+        <item name="android:colorBackground">@color/background_light</item>
+        <item name="colorOnBackground">@color/onBackground_light</item>
+        <item name="colorSurface">@color/surface_light</item>
+        <item name="colorOnSurface">@color/onSurface_light</item>
+        <item name="colorSurfaceVariant">@color/surfaceVariant_light</item>
+        <item name="colorOnSurfaceVariant">@color/onSurfaceVariant_light</item>
+        <item name="colorOutline">@color/outline_light</item>
+
+        
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Easygov.HeadlineLarge</item>
+        <item name="textAppearanceTitleLarge">@style/TextAppearance.Easygov.TitleLarge</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Easygov.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Easygov.BodyMedium</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Easygov.LabelLarge</item>
+
+        
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.Easygov.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.Easygov.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.Easygov.LargeComponent</item>
+
+        
+        <item name="materialCardViewStyle">@style/Widget.Easygov.Card</item>
+        <item name="materialButtonStyle">@style/Widget.Easygov.Button</item>
+    </style>
+    <style name="ShapeAppearance.Easygov.Button" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">12dp</item>
+    </style>
+    <style name="ShapeAppearance.Easygov.Card" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="ShapeAppearance.Easygov.LargeComponent" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+    <style name="ShapeAppearance.Easygov.MediumComponent" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">12dp</item>
+    </style>
+    <style name="ShapeAppearance.Easygov.SmallComponent" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerSize">8dp</item>
+    </style>
+    <style name="TextAppearance.Easygov.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+    <style name="TextAppearance.Easygov.BodyMedium" parent="TextAppearance.Material3.BodyMedium">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.02</item>
+    </style>
+    <style name="TextAppearance.Easygov.HeadlineLarge" parent="TextAppearance.Material3.HeadlineLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">32sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    <style name="TextAppearance.Easygov.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+    <style name="TextAppearance.Easygov.TitleLarge" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    <style name="Theme.Easygov" parent="Base.Theme.Easygov"/>
+    <style name="Widget.Easygov.Button" parent="Widget.Material3.Button">
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Button</item>
+    </style>
+    <style name="Widget.Easygov.Card" parent="Widget.Material3.CardView.Elevated">
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Card</item>
+        <item name="cardBackgroundColor">@color/surface_light</item>
+    </style>
+</resources>

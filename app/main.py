@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
@@ -35,6 +36,14 @@ llm = ChatOpenAI(
 
 # 4. Retrieval settings (RAG)
 retriever_k = int(os.getenv("RETRIEVER_K", "6"))
+
+
+# Simple structural layout for your service objects
+class GovService(BaseModel):
+    id: int
+    name: str
+    category: str
+    description: str
 
 
 class QueryRequest(BaseModel):
@@ -116,6 +125,52 @@ async def ask_government_bot(request: QueryRequest):
                 detail="Cannot connect to OpenRouter. Check your internet connection and retry.",
             ) from e
         raise HTTPException(status_code=500, detail=error_text) from e
+
+
+@app.get("/api/v1/dashboard")
+async def get_dashboard_data():
+    # 1. Mock Database representing Prashna's interaction state
+    MOCK_USER_INTERESTS = {
+        "category_weights": {
+            "Identity": 15,    # High weight because of recent interactions
+            "Transport": 8,
+            "Business": 2
+        },
+        "history": ["Citizenship Application Copy"]
+    }
+
+    # 2. Complete catalog repository
+    GOV_CATALOG = [
+        {"id": 1, "name": "E-Passport Apply", "category": "Identity", "description": "Pre-enrollment details and fast-track processing guidelines."},
+        {"id": 2, "name": "Bluebook Renewal", "category": "Transport", "description": "Calculate provincial road tax brackets and document requirements."},
+        {"id": 3, "name": "NID Registration", "category": "Identity", "description": "National Identity Card biometric enrollment scheduling details."},
+        {"id": 4, "name": "Business Registration", "category": "Business", "description": "Complete structural workspace registration for local firms."}
+    ]
+
+    scored_services = []
+    weights = MOCK_USER_INTERESTS["category_weights"]
+
+    # Simple scoring algorithm
+    for service in GOV_CATALOG:
+        score = weights.get(service["category"], 0)
+
+        # Rule-based sequential boost: if they looked at Citizenship, boost NID!
+        if service["name"] == "NID Registration" and "Citizenship Application Copy" in MOCK_USER_INTERESTS["history"]:
+            score += 20
+
+        scored_services.append((service, score))
+
+    # Sort descending by score mapping
+    scored_services.sort(key=lambda x: x[1], reverse=True)
+
+    # Extract just the top 2 elements for the recommendation row
+    recommendations = [item[0] for item in scored_services[:2]]
+
+    return {
+        "user_name": "Prashna KC",
+        "recommended": recommendations,
+        "catalog": GOV_CATALOG
+    }
 
 
 @app.get("/")
