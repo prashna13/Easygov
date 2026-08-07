@@ -1,0 +1,20 @@
+fastapi
+uvicorn[standard]
+pydantic
+python-dotenv
+streamlit
+requests
+langchain-chroma
+langchain-community
+langchain-core
+langchain-huggingface
+langchain-openai
+langchain-text-splitters
+PyMuPDF
+unstructured
+# ── Database Layer ────────────────────────────────
+sqlalchemy
+passlib[bcrypt]
+python-jose[cryptography]
+email-validator
+

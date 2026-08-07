@@ -18,6 +18,14 @@
     <color name="surfaceVariant_light">#E0E2EC</color>
     <color name="onSurfaceVariant_light">#44474E</color>
     <color name="outline_light">#74777F</color>
+    <color name="screen_light">#F4F7FA</color>
+    <color name="card_light">#FFFFFF</color>
+    <color name="field_light">#FFFFFF</color>
+    <color name="divider_light">#D8DEE8</color>
+    <color name="success_light">#146C57</color>
+    <color name="successContainer_light">#DDF4EA</color>
+    <color name="warning_light">#8A5A00</color>
+    <color name="warningContainer_light">#FFF1CC</color>
 
     <!-- Dark Mode Colors -->
     <color name="primary_dark">#D6E3FF</color>

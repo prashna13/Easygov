@@ -37,6 +37,8 @@
         <item name="materialButtonStyle">@style/Widget.Easygov.Button</item>
     </style>
 
+    <style name="Theme.Easygov" parent="Base.Theme.Easygov" />
+
     <style name="Widget.Easygov.Card" parent="Widget.Material3.CardView.Elevated">
         <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Card</item>
         <item name="cardBackgroundColor">@color/surface_dark</item>
@@ -44,5 +46,10 @@
 
     <style name="Widget.Easygov.Button" parent="Widget.Material3.Button">
         <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Button</item>
+    </style>
+
+    <style name="Widget.Easygov.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primaryContainer_dark</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.SmallComponent</item>
     </style>
 </resources>

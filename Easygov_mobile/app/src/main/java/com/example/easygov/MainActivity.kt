@@ -31,7 +31,12 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.nav_profile -> {
-                    loadFragment(LoginFragment())
+                    val sessionManager = SessionManager.getInstance(this@MainActivity)
+                    if (sessionManager.fetchAuthToken() != null) {
+                        loadFragment(ProfileFragment())
+                    } else {
+                        loadFragment(LoginFragment())
+                    }
                     true
                 }
                 else -> false

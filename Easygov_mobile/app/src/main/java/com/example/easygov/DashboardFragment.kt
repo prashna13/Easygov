@@ -74,33 +74,13 @@ class DashboardFragment : Fragment() {
     }
 
     /**
-     * Fetches dashboard data. Temporarily mocked with Nepalese government
-     * service entities to bypass empty backend database dependencies.
+     * Fetches dashboard data from the FastAPI backend using saved auth token.
      */
     private fun fetchDashboardData() {
         swipeRefresh.isRefreshing = true
 
-        // --- START OF MOCK DATA BLOCK ---
-        // Simulating standard services catalog data
-        val mockStandardServices = listOf(
-            GovService(id = 1, title = "Smart License Renewal", category = "Transport", description = "Guide to renewing your driving license, biometric scheduling, and digital tracking.", isRecommended = false),
-            GovService(id = 2, title = "PAN Registration", category = "Tax", description = "Apply for a Personal or Business Permanent Account Number (PAN) via the IRD interface.", isRecommended = false),
-            GovService(id = 3, title = "Company Registration", category = "Business", description = "Step-by-step documentation required for registering new private limited ventures.", isRecommended = false),
-            GovService(id = 4, title = "Vital Registration", category = "Local Gov", description = "Process flow maps for birth, marriage, and migration certifications at local ward offices.", isRecommended = false)
-        )
-
-        // Simulating personalized recommendation analytics data
-        val mockRecommendedServices = listOf(
-            GovService(id = 5, title = "Rahadani (Passport) Apply", category = "Personal", description = "Pre-enrollment details, automated price tallies, and e-passport pick-up windows.", isRecommended = true),
-            GovService(id = 6, title = "Bluebook Renewal", category = "Transport", description = "Calculate dynamic annual provincial road taxes and clear vehicle registration slips.", isRecommended = true)
-        )
-        // --- END OF MOCK DATA BLOCK ---
-
-        /* NOTE: When backend databases are fully functional, uncomment the block below
-         and delete the handler postDelayed block to switch back to live server endpoints.
-
-        val dummyToken = "Bearer dummy_token"
-        RetrofitClient.apiService.getDashboardData(dummyToken).enqueue(object : Callback<DashboardResponse> {
+        val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken() ?: ""
+        RetrofitClient.apiService.getDashboardData(authToken).enqueue(object : Callback<DashboardResponse> {
             override fun onResponse(call: Call<DashboardResponse>, response: Response<DashboardResponse>) {
                 swipeRefresh.isRefreshing = false
                 if (response.isSuccessful && response.body() != null) {
@@ -108,27 +88,19 @@ class DashboardFragment : Fragment() {
                     val data = response.body()!!
                     standardAdapter.submitList(data.services)
                     recommendedAdapter.submitList(data.recommendations)
+
+                    val tvDashboardTitle = view?.findViewById<TextView>(R.id.tvDashboardTitle)
+                    tvDashboardTitle?.text = "Welcome, ${data.userName} • Personalized services & guides"
                 } else {
-                    showError("Server Error: \${response.code()}")
+                    showError("Server Error: ${response.code()}")
                 }
             }
 
             override fun onFailure(call: Call<DashboardResponse>, t: Throwable) {
                 swipeRefresh.isRefreshing = false
-                showError("Network Failure: \${t.localizedMessage}")
+                showError("Network Failure: ${t.localizedMessage}")
             }
         })
-        */
-
-        // Simulate a slight network processing delay (600ms) for smooth layout transition checking
-        view?.postDelayed({
-            swipeRefresh.isRefreshing = false
-            showContent()
-
-            // Populate the adapters with our test lists
-            standardAdapter.submitList(mockStandardServices)
-            recommendedAdapter.submitList(mockRecommendedServices)
-        }, 600)
     }
 
     private fun navigateToDetail(service: GovService) {

@@ -9,7 +9,9 @@ import java.util.concurrent.TimeUnit
  * Singleton object to provide a configured Retrofit instance.
  */
 object RetrofitClient {
-    private const val BASE_URL = "http://10.0.2.2:8000/" // FastAPI backend address for emulator
+    // For Android Emulator, use "http://10.0.2.2:8000/" to connect to host PC localhost.
+    // For a physical Android phone on local Wi-Fi, use your laptop's IP e.g. "http://192.168.1.72:8000/"
+    private const val BASE_URL = "http://10.0.2.2:8000/"
 
     private val okHttpClient = OkHttpClient.Builder()
         .connectTimeout(2, TimeUnit.MINUTES)

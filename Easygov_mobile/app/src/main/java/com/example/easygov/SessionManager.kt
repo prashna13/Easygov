@@ -27,10 +27,17 @@ class SessionManager private constructor(context: Context) {
     }
 
     /**
-     * Securely saves the JWT auth token.
+     * Securely saves the JWT auth token and user info.
      */
     fun saveAuthToken(token: String) {
         prefs.edit().putString(KEY_AUTH_TOKEN, token).apply()
+    }
+
+    fun saveUser(fullName: String, email: String) {
+        prefs.edit()
+            .putString(KEY_USER_NAME, fullName)
+            .putString(KEY_USER_EMAIL, email)
+            .apply()
     }
 
     /**
@@ -38,6 +45,14 @@ class SessionManager private constructor(context: Context) {
      */
     fun fetchAuthToken(): String? {
         return prefs.getString(KEY_AUTH_TOKEN, null)
+    }
+
+    fun fetchUserName(): String? {
+        return prefs.getString(KEY_USER_NAME, null)
+    }
+
+    fun fetchUserEmail(): String? {
+        return prefs.getString(KEY_USER_EMAIL, null)
     }
 
     /**
@@ -49,6 +64,8 @@ class SessionManager private constructor(context: Context) {
 
     companion object {
         private const val KEY_AUTH_TOKEN = "auth_token"
+        private const val KEY_USER_NAME = "user_name"
+        private const val KEY_USER_EMAIL = "user_email"
 
         @Volatile
         private var instance: SessionManager? = null

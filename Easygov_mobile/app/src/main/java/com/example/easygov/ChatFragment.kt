@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
+import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -19,22 +20,24 @@ class ChatFragment : Fragment() {
     private lateinit var tvChatLog: TextView
     private lateinit var etQuestion: EditText
     private lateinit var btnSend: Button
+    private lateinit var btnHistory: ImageButton
+    private lateinit var btnNewChat: ImageButton
     private lateinit var markwon: Markwon
+    private var chatAccumulator = ""
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate our new isolated layout file instead of hijacking activity_main
         val view = inflater.inflate(R.layout.fragment_chat, container, false)
 
-        // Bind IDs directly from fragment_chat.xml view context
         tvChatLog = view.findViewById(R.id.tvChatLog)
         etQuestion = view.findViewById(R.id.etQuestion)
         btnSend = view.findViewById(R.id.btnSend)
+        btnHistory = view.findViewById(R.id.btnHistory)
+        btnNewChat = view.findViewById(R.id.btnNewChat)
 
-        // Initialize Markwon using fragment contextual parameters safely
         markwon = Markwon.create(requireContext())
 
         btnSend.setOnClickListener {
@@ -46,51 +49,71 @@ class ChatFragment : Fragment() {
             }
         }
 
+        btnHistory.setOnClickListener {
+            val historySheet = ChatHistoryBottomSheet()
+            historySheet.show(parentFragmentManager, ChatHistoryBottomSheet.TAG)
+        }
+
+        btnNewChat.setOnClickListener {
+            chatAccumulator = ""
+            tvChatLog.text = "Ready for your question."
+            Toast.makeText(context, "New conversation started", Toast.LENGTH_SHORT).show()
+        }
+
         return view
     }
 
     private fun executeNetworkQuery(userQuestion: String) {
-        // Log user submission string state update to viewport
-        val currentLog = tvChatLog.text.toString()
-        tvChatLog.text = "$currentLog\n\n👤 You: $userQuestion\n🤖 EasyGov: Typing..."
+        val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
+        if (authToken == null) {
+            Toast.makeText(context, "Please sign in to use the AI assistant", Toast.LENGTH_LONG).show()
+            return
+        }
+
+        // Add user question to log
+        if (chatAccumulator.isEmpty()) chatAccumulator = ""
+        chatAccumulator += "\n\n👤 You: $userQuestion\n🤖 EasyGov: Typing..."
+        updateChatDisplay()
         etQuestion.text.clear()
 
-        // Build network transfer data payload instance object
         val requestPayload = ChatRequest(question = userQuestion)
 
-        // Execute asynchronous HTTP stream connection via Retrofit instance
-        RetrofitClient.instance.getBotResponse(requestPayload).enqueue(object : Callback<ChatResponse> {
-            override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
-                if (response.isSuccessful && response.body() != null) {
-                    val systemReply = response.body()!!.answer
-
-                    // Clear out our temporary fallback state placeholder
-                    val freshLogBase = tvChatLog.text.toString().replace("🤖 EasyGov: Typing...", "")
-
-                    // Map fresh logs and parse native formatted markdown elements
-                    tvChatLog.text = freshLogBase
-                    markwon.setMarkdown(tvChatLog, "$freshLogBase\n🤖 EasyGov:\n$systemReply")
-                } else {
-                    revertTypingState("Error processing request: Code ${response.code()}")
+        com.example.easygov.network.RetrofitClient.apiService.getBotResponse(authToken, requestPayload)
+            .enqueue(object : Callback<ChatResponse> {
+                override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
+                    if (response.isSuccessful && response.body() != null) {
+                        val systemReply = response.body()!!.answer
+                        chatAccumulator = chatAccumulator.replace("🤖 EasyGov: Typing...", "🤖 EasyGov:\n$systemReply")
+                        updateChatDisplay()
+                    } else {
+                        revertTypingState("Error: ${response.code()}")
+                    }
                 }
-            }
 
-            override fun onFailure(call: Call<ChatResponse>, t: Throwable) {
-                revertTypingState("Failed to connect to backend server: ${t.message}")
-            }
-        })
+                override fun onFailure(call: Call<ChatResponse>, t: Throwable) {
+                    revertTypingState("Connection Failed: ${t.localizedMessage}")
+                }
+            })
+    }
+
+    private fun updateChatDisplay() {
+        markwon.setMarkdown(tvChatLog, chatAccumulator)
     }
 
     private fun revertTypingState(errorMessage: String) {
-        val cleanLog = tvChatLog.text.toString().replace("🤖 EasyGov: Typing...", "")
-        tvChatLog.text = "$cleanLog\n❌ System Error:\n$errorMessage"
+        chatAccumulator = chatAccumulator.replace("🤖 EasyGov: Typing...", "❌ Error: $errorMessage")
+        updateChatDisplay()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
         // Check for initial question passed from Dashboard
+        checkInitialQuestion()
+    }
+
+    private fun checkInitialQuestion() {
         arguments?.getString("initial_question")?.let { question ->
+            arguments?.remove("initial_question") // Only process once
             executeNetworkQuery(question)
         }
     }

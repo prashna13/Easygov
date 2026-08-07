@@ -1,8 +1,0 @@
-com.example.easygov.app-pngs-0 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\build\generated\res\pngs\debug
-com.example.easygov.app-updated_navigation_xml-1 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\build\generated\updated_navigation_xml\debug
-com.example.easygov.app-packageDebugResources-2 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\build\intermediates\incremental\debug\packageDebugResources\merged.dir
-com.example.easygov.app-packageDebugResources-3 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\build\intermediates\incremental\debug\packageDebugResources\stripped.dir
-com.example.easygov.app-debug-4 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\build\intermediates\merged_res\debug\mergeDebugResources
-com.example.easygov.app-debug-5 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\src\debug\res
-com.example.easygov.app-main-6 C:\Users\Ivy\Desktop\EasyGov_project\Easygov_mobile\app\src\main\res
-gradleHome-0 C:\Users\Ivy\.gradle

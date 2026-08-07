@@ -1,11 +1,28 @@
-from fastapi import FastAPI, HTTPException
+import sys
+import os
+
+# Ensure project root is in sys.path when script is executed directly
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
+from fastapi import FastAPI, HTTPException, Depends, status
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
+from sqlalchemy.orm import Session
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
-import os
+
+from app.database import get_db
+from app.models import User, GovService as DBGovService, UserService as DBUserService, ChatMessage
+from app.schemas import (
+    UserRegister, UserLogin, UserOut, TokenResponse,
+    DashboardOut, GovServiceOut, ChatHistoryOut
+)
+from app.auth_utils import (
+    hash_password, verify_password, create_access_token,
+    get_current_user, get_current_user_optional
+)
 
 load_dotenv()
 
@@ -39,22 +56,111 @@ retriever_k = int(os.getenv("RETRIEVER_K", "6"))
 
 
 # Simple structural layout for your service objects
-class GovService(BaseModel):
-    id: int
-    name: str
-    category: str
-    description: str
-
-
 class QueryRequest(BaseModel):
-    question: str | None = None
-    query: str | None = None
-    message: str | None = None
+    question: Optional[str] = None
+    query: Optional[str] = None
+    message: Optional[str] = None
     debug: bool = False
 
 
+# ── AUTHENTICATION ENDPOINTS ──────────────────────────────────────────────────
+
+@app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
+def register(user_data: UserRegister, db: Session = Depends(get_db)):
+    """Register a new user account and return a JWT access token."""
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="An account with this email already exists."
+        )
+
+    if user_data.citizenship_number:
+        existing_citizenship = db.query(User).filter(User.citizenship_number == user_data.citizenship_number).first()
+        if existing_citizenship:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="An account with this citizenship number already exists."
+            )
+
+    new_user = User(
+        email=user_data.email,
+        password_hash=hash_password(user_data.password),
+        full_name=user_data.full_name,
+        phone=user_data.phone,
+        citizenship_number=user_data.citizenship_number,
+        province=user_data.province
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    token = create_access_token({"sub": new_user.email})
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserOut.model_validate(new_user)
+    )
+
+
+@app.post("/auth/login", response_model=TokenResponse)
+def login(credentials: UserLogin, db: Session = Depends(get_db)):
+    """Authenticate user with email and password, returning a JWT token."""
+    user = db.query(User).filter(User.email == credentials.email).first()
+    if not user or not verify_password(credentials.password, user.password_hash):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid email or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User account is deactivated."
+        )
+
+    token = create_access_token({"sub": user.email})
+    return TokenResponse(
+        access_token=token,
+        token_type="bearer",
+        user=UserOut.model_validate(user)
+    )
+
+
+@app.get("/auth/me", response_model=UserOut)
+def get_me(current_user: User = Depends(get_current_user)):
+    """Returns the profile of the currently logged-in user."""
+    return UserOut.model_validate(current_user)
+
+
+@app.get("/chat/history", response_model=ChatHistoryOut)
+def get_chat_history(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Return saved chatbot history for the authenticated user."""
+    messages = (
+        db.query(ChatMessage)
+        .filter(ChatMessage.user_id == current_user.id)
+        .order_by(ChatMessage.created_at)
+        .all()
+
+    )
+    return ChatHistoryOut(
+        user_id=current_user.id,
+        messages=messages,
+    )
+
+
+# ── RAG CHATBOT ENDPOINT ──────────────────────────────────────────────────────
+
 @app.post("/ask")
-async def ask_government_bot(request: QueryRequest):
+async def ask_government_bot(
+    request: QueryRequest,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
     user_question = request.question or request.query or request.message
 
     if not user_question:
@@ -64,6 +170,17 @@ async def ask_government_bot(request: QueryRequest):
         )
 
     try:
+        if current_user is not None:
+            # Persist the user's question to chat history
+            user_message = ChatMessage(
+                user_id=current_user.id,
+                role="user",
+                content=user_question,
+            )
+            db.add(user_message)
+            db.commit()
+            db.refresh(user_message)
+
         # Use similarity_search() to get documents and metadata
         docs = vector_db.similarity_search(user_question, k=retriever_k)
 
@@ -94,6 +211,16 @@ async def ask_government_bot(request: QueryRequest):
 
         llm_result = llm.invoke(strict_prompt)
         answer_text = getattr(llm_result, "content", None) or str(llm_result)
+
+        if current_user is not None:
+            assistant_message = ChatMessage(
+                user_id=current_user.id,
+                role="assistant",
+                content=answer_text,
+            )
+            db.add(assistant_message)
+            db.commit()
+            db.refresh(assistant_message)
 
         # Build the final response
         response_data = {
@@ -127,50 +254,52 @@ async def ask_government_bot(request: QueryRequest):
         raise HTTPException(status_code=500, detail=error_text) from e
 
 
-@app.get("/api/v1/dashboard")
-async def get_dashboard_data():
-    # 1. Mock Database representing Prashna's interaction state
-    MOCK_USER_INTERESTS = {
-        "category_weights": {
-            "Identity": 15,    # High weight because of recent interactions
-            "Transport": 8,
-            "Business": 2
-        },
-        "history": ["Citizenship Application Copy"]
-    }
+# ── DASHBOARD ENDPOINT ────────────────────────────────────────────────────────
 
-    # 2. Complete catalog repository
-    GOV_CATALOG = [
-        {"id": 1, "name": "E-Passport Apply", "category": "Identity", "description": "Pre-enrollment details and fast-track processing guidelines."},
-        {"id": 2, "name": "Bluebook Renewal", "category": "Transport", "description": "Calculate provincial road tax brackets and document requirements."},
-        {"id": 3, "name": "NID Registration", "category": "Identity", "description": "National Identity Card biometric enrollment scheduling details."},
-        {"id": 4, "name": "Business Registration", "category": "Business", "description": "Complete structural workspace registration for local firms."}
+@app.get("/api/v1/dashboard", response_model=DashboardOut)
+async def get_dashboard_data(
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    """
+    Fetches real service catalog and recommendations from SQLite database.
+    Personalizes output if Bearer JWT token is present.
+    """
+    db_services = db.query(DBGovService).filter(DBGovService.is_active == True).all()
+
+    catalog_out = [
+        GovServiceOut(
+            id=s.id,
+            title=s.title,
+            category=s.category,
+            description=s.description,
+            department=s.department,
+            estimated_days=s.estimated_days,
+            fee_npr=s.fee_npr
+        )
+        for s in db_services
     ]
 
-    scored_services = []
-    weights = MOCK_USER_INTERESTS["category_weights"]
+    user_name = current_user.full_name if current_user else "Guest User"
 
-    # Simple scoring algorithm
-    for service in GOV_CATALOG:
-        score = weights.get(service["category"], 0)
+    # Recommendation scoring algorithm based on DB
+    # Priority: Identity & Passport/NID services first
+    recommendations_out = []
+    if catalog_out:
+        # Pick NID & Passport or top 2 services as recommendations
+        rec_list = sorted(
+            catalog_out,
+            key=lambda x: 0 if "Passport" in x.title or "NID" in x.title else 1
+        )
+        recommendations_out = rec_list[:2]
+        for r in recommendations_out:
+            r.is_recommended = True
 
-        # Rule-based sequential boost: if they looked at Citizenship, boost NID!
-        if service["name"] == "NID Registration" and "Citizenship Application Copy" in MOCK_USER_INTERESTS["history"]:
-            score += 20
-
-        scored_services.append((service, score))
-
-    # Sort descending by score mapping
-    scored_services.sort(key=lambda x: x[1], reverse=True)
-
-    # Extract just the top 2 elements for the recommendation row
-    recommendations = [item[0] for item in scored_services[:2]]
-
-    return {
-        "user_name": "Prashna KC",
-        "recommended": recommendations,
-        "catalog": GOV_CATALOG
-    }
+    return DashboardOut(
+        user_name=user_name,
+        services=catalog_out,
+        recommendations=recommendations_out
+    )
 
 
 @app.get("/")
@@ -180,4 +309,4 @@ def home():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="127.0.0.1", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000)

@@ -7,28 +7,41 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp">
+    app:cardBackgroundColor="@color/card_light"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:strokeColor="@color/divider_light"
+    app:strokeWidth="1dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
+        android:layout_height="132dp"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
-        <ImageView
-            android:id="@+id/ivServiceIcon"
+        <FrameLayout
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:contentDescription="Service Icon"
-            app:srcCompat="@android:drawable/ic_menu_help" />
+            android:background="@drawable/bg_icon_well"
+            android:padding="10dp">
+
+            <ImageView
+                android:id="@+id/ivServiceIcon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:contentDescription="Service Icon"
+                app:srcCompat="@android:drawable/ic_menu_help"
+                app:tint="@color/primary_light" />
+        </FrameLayout>
 
         <TextView
             android:id="@+id/tvServiceName"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="12dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:text="Service Name"
             android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceLabelLarge"

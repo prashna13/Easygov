@@ -47,4 +47,9 @@
     <style name="Widget.Easygov.Button" parent="Widget.Material3.Button">
         <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Button</item>
     </style>
+
+    <style name="Widget.Easygov.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/primaryContainer_light</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.SmallComponent</item>
+    </style>
 </resources>

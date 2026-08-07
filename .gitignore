@@ -1,4 +1,31 @@
+# Python
 venv/
 __pycache__/
+*.pyc
+
+# Secrets
 .env
+
+# Database / vector store
 db_storage/
+
+# IDE
+.idea/
+*.iml
+
+# Android / Gradle
+Easygov_mobile/.gradle/
+Easygov_mobile/.idea/
+Easygov_mobile/local.properties
+Easygov_mobile/build/
+Easygov_mobile/app/build/
+Easygov_mobile/captures/
+
+# Dissertation working files (large binaries)
+docx_render_before/
+Dissertation_Interim_report.docx
+Dissertation_Interim_report_format_working.docx
+
+# OS
+.DS_Store
+Thumbs.db
