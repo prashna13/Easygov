@@ -4,11 +4,15 @@ import com.example.easygov.ChatHistoryResponse
 import com.example.easygov.ChatRequest
 import com.example.easygov.ChatResponse
 import com.example.easygov.model.DashboardResponse
+import com.example.easygov.model.OnboardingRequest
+import com.example.easygov.model.OnboardingResponse
+import com.example.easygov.model.ServiceDetailResponse
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.POST
+import retrofit2.http.Path
 
 /**
  * Retrofit interface for EasyGov API endpoints.
@@ -25,6 +29,25 @@ interface ApiService {
     fun getDashboardData(
         @Header("Authorization") authToken: String
     ): Call<DashboardResponse>
+
+    /**
+     * Submits the first-login onboarding form (age + owned documents).
+     */
+    @POST("/api/v1/onboarding")
+    fun submitOnboarding(
+        @Header("Authorization") authToken: String,
+        @Body request: OnboardingRequest
+    ): Call<OnboardingResponse>
+
+    /**
+     * Fetches full detail for a single service, including whether its
+     * prerequisites are satisfied. Drives the blocked/informational flow.
+     */
+    @GET("/api/v1/services/{serviceId}")
+    fun getServiceDetail(
+        @Header("Authorization") authToken: String,
+        @Path("serviceId") serviceId: Int
+    ): Call<ServiceDetailResponse>
 
     /**
      * Sends a question to the RAG AI chatbot.

@@ -98,6 +98,12 @@ GOV_SERVICES_DATA = [
 # Maps (service_title, prerequisite_title, is_mandatory, notes)
 PREREQUISITE_RULES_DATA = [
     (
+        "Citizenship Certificate Copy",
+        "Birth Certificate",
+        True,
+        "A registered birth certificate is the base document required before issuing a citizenship certificate."
+    ),
+    (
         "E-Passport Apply",
         "Citizenship Certificate Copy",
         True,
@@ -132,6 +138,8 @@ TEST_USER = {
     "date_of_birth":      date(1998, 3, 15),
     "address":            "Ward 5, Lalitpur Metropolitan City",
     "province":           "Bagmati Province",
+    "age":                28,
+    "onboarding_completed": True,
 }
 
 # Steps seeded for NID Registration (IN_PROGRESS)
@@ -259,8 +267,10 @@ def seed_test_user(db) -> User:
         password_hash      = hash_password(TEST_USER["password"]),
         citizenship_number = TEST_USER["citizenship_number"],
         date_of_birth      = TEST_USER["date_of_birth"],
+        age                = TEST_USER.get("age"),
         address            = TEST_USER["address"],
         province           = TEST_USER["province"],
+        onboarding_completed = TEST_USER.get("onboarding_completed", False),
     )
     db.add(user)
     db.commit()

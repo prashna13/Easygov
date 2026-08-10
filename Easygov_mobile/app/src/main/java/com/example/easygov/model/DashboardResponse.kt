@@ -12,7 +12,13 @@ data class DashboardResponse(
 
     @SerializedName("services")
     val services: List<GovService>,
-    
+
     @SerializedName("recommendations")
-    val recommendations: List<GovService>
+    val recommendations: List<GovService>,
+
+    @SerializedName("needs_onboarding")
+    val needsOnboarding: Boolean = false,
+
+    @SerializedName("recommended_next_step")
+    val recommendedNextStep: GovService? = null
 )

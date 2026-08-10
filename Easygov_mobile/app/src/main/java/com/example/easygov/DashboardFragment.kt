@@ -27,6 +27,8 @@ class DashboardFragment : Fragment() {
     private lateinit var errorLayout: View
     private lateinit var tvErrorMessage: TextView
     private lateinit var btnRetry: Button
+    private lateinit var nextStepBanner: View
+    private lateinit var tvNextStepTitle: TextView
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -45,6 +47,8 @@ class DashboardFragment : Fragment() {
         errorLayout = view.findViewById(R.id.errorLayout)
         tvErrorMessage = view.findViewById(R.id.tvErrorMessage)
         btnRetry = view.findViewById(R.id.btnRetry)
+        nextStepBanner = view.findViewById(R.id.nextStepBanner)
+        tvNextStepTitle = view.findViewById(R.id.tvNextStepTitle)
 
         val rvDashboard = view.findViewById<RecyclerView>(R.id.rvDashboard)
         val rvRecommendations = view.findViewById<RecyclerView>(R.id.rvRecommendations)
@@ -84,13 +88,22 @@ class DashboardFragment : Fragment() {
             override fun onResponse(call: Call<DashboardResponse>, response: Response<DashboardResponse>) {
                 swipeRefresh.isRefreshing = false
                 if (response.isSuccessful && response.body() != null) {
-                    showContent()
                     val data = response.body()!!
+
+                    if (data.needsOnboarding) {
+                        showContent()
+                        showOnboarding()
+                        return
+                    }
+
+                    showContent()
                     standardAdapter.submitList(data.services)
                     recommendedAdapter.submitList(data.recommendations)
 
                     val tvDashboardTitle = view?.findViewById<TextView>(R.id.tvDashboardTitle)
                     tvDashboardTitle?.text = "Welcome, ${data.userName} • Personalized services & guides"
+
+                    bindNextStepBanner(data.recommendedNextStep)
                 } else {
                     showError("Server Error: ${response.code()}")
                 }
@@ -105,6 +118,7 @@ class DashboardFragment : Fragment() {
 
     private fun navigateToDetail(service: GovService) {
         val detailFragment = ServiceDetailFragment.newInstance(
+            service.id,
             service.title,
             service.category,
             service.description
@@ -114,6 +128,23 @@ class DashboardFragment : Fragment() {
             .replace(R.id.fragmentContainer, detailFragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    private fun showOnboarding() {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, OnboardingFragment())
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun bindNextStepBanner(nextStep: GovService?) {
+        if (nextStep == null) {
+            nextStepBanner.visibility = View.GONE
+            return
+        }
+        tvNextStepTitle.text = nextStep.title
+        nextStepBanner.visibility = View.VISIBLE
+        nextStepBanner.setOnClickListener { navigateToDetail(nextStep) }
     }
 
     private fun showContent() {

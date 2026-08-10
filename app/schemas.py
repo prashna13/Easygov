@@ -44,6 +44,23 @@ class TokenResponse(BaseModel):
     user: UserOut
 
 
+# ── ONBOARDING SCHEMAS ───────────────────────────────────────────────────────
+
+class OnboardingRequest(BaseModel):
+    """First-login onboarding: age + which government documents are already completed.
+
+    `completed_documents` is a list of document keys, e.g.:
+      ["birth_certificate", "citizenship"]
+    """
+    age: int
+    completed_documents: List[str] = []
+
+
+class OnboardingResponse(BaseModel):
+    onboarding_completed: bool
+    recommended_next_step: Optional["GovServiceOut"] = None
+
+
 # ── DASHBOARD SCHEMAS ─────────────────────────────────────────────────────────
 
 class GovServiceOut(BaseModel):
@@ -55,9 +72,19 @@ class GovServiceOut(BaseModel):
     estimated_days: Optional[int] = None
     fee_npr: int = 0
     is_recommended: Optional[bool] = False
+    prerequisites_met: Optional[bool] = True
+    missing_prerequisites: Optional[List[str]] = []
 
     class Config:
         from_attributes = True
+
+
+class ServiceDetailOut(BaseModel):
+    """Full detail for a single service, including prerequisite status."""
+    service: GovServiceOut
+    prerequisites_met: bool
+    missing_prerequisites: List[str] = []
+    recommended_next_step: Optional[GovServiceOut] = None
 
 
 class ChatMessageOut(BaseModel):
@@ -82,3 +109,5 @@ class DashboardOut(BaseModel):
     user_name: str
     services: List[GovServiceOut]
     recommendations: List[GovServiceOut]
+    needs_onboarding: bool = False
+    recommended_next_step: Optional[GovServiceOut] = None

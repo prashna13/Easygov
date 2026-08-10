@@ -115,6 +115,8 @@ EasyGov_project/
 | POST | `/auth/login` | LIVE | Verifies bcrypt password, returns JWT token + user profile |
 | GET | `/auth/me` | LIVE | Protected endpoint — returns profile of current Bearer token holder |
 | GET | `/api/v1/dashboard` | LIVE | Real DB query from SQLite `gov_services` (personalizes if Bearer token present) |
+| POST | `/api/v1/onboarding` | LIVE | First-login onboarding: age + owned documents → marks services completed, unlocks personalized chain |
+| GET | `/api/v1/services/{service_id}` | LIVE | Service detail + `prerequisites_met` / `missing_prerequisites` (drives Android blocked flow) |
 | GET | `/chat/history` | LIVE | Protected — returns saved chat history for the authenticated user |
 | GET | `/api/v1/user/progress` | NOT BUILT | Planned next |
 | PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Planned — mark a step complete |
@@ -138,6 +140,11 @@ EasyGov_project/
 - [x] **Android Profile & Logout**: `ProfileFragment` shows saved user info, `btnLogout` clears `SessionManager`
 - [x] **Chat History Backend**: `GET /chat/history` persists + returns user's messages from `chat_messages` table
 - [x] **Chat History UI**: `ChatHistoryBottomSheet` + adapter fetch and display saved history (newest first)
+- [x] **Onboarding Backend**: `POST /api/v1/onboarding` — saves age, marks owned documents (+ mandatory prerequisites) COMPLETED via dependency rules, returns recommended next step
+- [x] **Prerequisite Blocking Backend**: `GET /api/v1/services/{id}` returns `prerequisites_met` + `missing_prerequisites`; dashboard returns `needs_onboarding` + `recommended_next_step`
+- [x] **Android Onboarding**: `OnboardingFragment` (age + document checklist) auto-shown when `needs_onboarding` is true; submits to backend then refreshes dashboard
+- [x] **Android Next-Step Banner**: Dashboard shows a tappable "Recommended Next Step" banner; service cards open `ServiceDetailFragment` with real service id
+- [x] **Android Blocked Service Flow**: `ServiceDetailFragment` fetches prerequisite status; blocked services show a warning panel with read-only informational mode
 
 ---
 
@@ -167,3 +174,6 @@ EasyGov_project/
 | 2026-08-07 | Built `/chat/history` endpoint (persists user + assistant messages in `chat_messages`) |
 | 2026-08-07 | Added `RegisterFragment`, `ProfileFragment`, chat history bottom sheet + adapter on Android |
 | 2026-08-07 | Reviewed full codebase, synced `PROGRESS.md` to reflect actual state |
+| 2026-08-08 | Added `age` + `onboarding_completed` to `User`, migrated existing DB, seeded Birth→Citizenship rule |
+| 2026-08-08 | Built onboarding + prerequisite-blocking backend (`POST /api/v1/onboarding`, `GET /api/v1/services/{id}`, updated dashboard), verified end-to-end |
+| 2026-08-08 | Android: `OnboardingFragment`, next-step banner, blocked-service read-only flow; built APK successfully |

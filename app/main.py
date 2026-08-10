@@ -14,10 +14,18 @@ from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 
 from app.database import get_db
-from app.models import User, GovService as DBGovService, UserService as DBUserService, ChatMessage
+from app.models import (
+    User,
+    GovService as DBGovService,
+    UserService as DBUserService,
+    PrerequisiteRule,
+    ChatMessage,
+    ServiceStatus,
+)
 from app.schemas import (
     UserRegister, UserLogin, UserOut, TokenResponse,
-    DashboardOut, GovServiceOut, ChatHistoryOut
+    DashboardOut, GovServiceOut, ChatHistoryOut,
+    OnboardingRequest, OnboardingResponse, ServiceDetailOut,
 )
 from app.auth_utils import (
     hash_password, verify_password, create_access_token,
@@ -53,6 +61,112 @@ llm = ChatOpenAI(
 
 # 4. Retrieval settings (RAG)
 retriever_k = int(os.getenv("RETRIEVER_K", "6"))
+
+
+# ── ONBOARDING / DOCUMENT DEPENDENCY PROFILE ────────────────────────────────
+# Keys sent by the mobile app map to gov_services.title values.
+ONBOARDING_DOCUMENTS = {
+    "birth_certificate": "Birth Certificate",
+    "citizenship":       "Citizenship Certificate Copy",
+    "nid":               "NID Registration",
+    "passport":          "E-Passport Apply",
+    "company":           "Business Registration",
+}
+
+# Ordered dependency chain used to pick the recommended "next step".
+NEXT_STEP_CHAIN = [
+    "Birth Certificate",
+    "Citizenship Certificate Copy",
+    "NID Registration",
+    "E-Passport Apply",
+    "Business Registration",
+]
+
+# When every document in the chain is complete, fall back to this service.
+NEXT_STEP_FALLBACK = "Bluebook Renewal"
+
+
+def get_completed_service_ids(db: Session, user: User) -> set:
+    """Set of service ids the user has fully completed."""
+    rows = (
+        db.query(DBUserService.service_id)
+        .filter(
+            DBUserService.user_id == user.id,
+            DBUserService.status == ServiceStatus.COMPLETED,
+        )
+        .all()
+    )
+    return {r[0] for r in rows}
+
+
+def resolve_completed_titles(db: Session, title: str) -> set:
+    """Return `title` plus every transitive mandatory prerequisite title.
+
+    Keeps the document profile consistent: e.g. marking "NID Registration"
+    as completed also implies "Citizenship Certificate Copy" and
+    "Birth Certificate" are completed.
+    """
+    result = {title}
+    changed = True
+    while changed:
+        changed = False
+        for rule in db.query(PrerequisiteRule).filter(PrerequisiteRule.is_mandatory == True).all():  # noqa: E712
+            service_title = rule.service.title
+            prereq_title = rule.prerequisite_service.title
+            if service_title in result and prereq_title not in result:
+                result.add(prereq_title)
+                changed = True
+    return result
+
+
+def get_prerequisite_status(db: Session, service, completed_ids: set):
+    """Returns (prerequisites_met, missing_prerequisite_titles)."""
+    rules = (
+        db.query(PrerequisiteRule)
+        .filter(
+            PrerequisiteRule.service_id == service.id,
+            PrerequisiteRule.is_mandatory == True,  # noqa: E712
+        )
+        .all()
+    )
+    missing = []
+    for rule in rules:
+        if rule.prerequisite_service_id not in completed_ids:
+            missing.append(rule.prerequisite_service.title)
+    return (len(missing) == 0), missing
+
+
+def build_service_out(service, completed_ids: set, db: Session) -> GovServiceOut:
+    """Build a GovServiceOut with prerequisite status filled in."""
+    met, missing = get_prerequisite_status(db, service, completed_ids)
+    return GovServiceOut(
+        id=service.id,
+        title=service.title,
+        category=service.category,
+        description=service.description,
+        department=service.department,
+        estimated_days=service.estimated_days,
+        fee_npr=service.fee_npr,
+        prerequisites_met=met,
+        missing_prerequisites=missing,
+    )
+
+
+def get_recommended_next_step(db: Session, completed_ids: set, service_by_title: dict):
+    """First incomplete document in the dependency chain whose prerequisites are met,
+    or the fallback service when the whole chain is complete. Returns None if all done."""
+    for title in NEXT_STEP_CHAIN:
+        svc = service_by_title.get(title)
+        if svc is None or svc.id in completed_ids:
+            continue
+        met, _ = get_prerequisite_status(db, svc, completed_ids)
+        if met:
+            return svc
+
+    fallback = service_by_title.get(NEXT_STEP_FALLBACK)
+    if fallback and fallback.id not in completed_ids:
+        return fallback
+    return None
 
 
 # Simple structural layout for your service objects
@@ -254,6 +368,96 @@ async def ask_government_bot(
         raise HTTPException(status_code=500, detail=error_text) from e
 
 
+# ── ONBOARDING ENDPOINT ───────────────────────────────────────────────────────
+
+@app.post("/api/v1/onboarding", response_model=OnboardingResponse)
+def submit_onboarding(
+    payload: OnboardingRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    First-login onboarding: records the user's age and which government
+    documents they have already completed, then builds a personal document
+    dependency profile in user_services.
+    """
+    if payload.age <= 0 or payload.age > 130:
+        raise HTTPException(status_code=400, detail="Please enter a valid age.")
+
+    unknown = [k for k in payload.completed_documents if k not in ONBOARDING_DOCUMENTS]
+    if unknown:
+        raise HTTPException(status_code=400, detail=f"Unknown document keys: {unknown}")
+
+    current_user.age = payload.age
+    current_user.onboarding_completed = True
+
+    service_by_title = {s.title: s for s in db.query(DBGovService).all()}
+
+    # Mark selected documents (and their mandatory prerequisites) as COMPLETED.
+    # Deduplicate titles first so each service is processed only once.
+    all_titles = set()
+    for key in payload.completed_documents:
+        all_titles |= resolve_completed_titles(db, ONBOARDING_DOCUMENTS[key])
+
+    for title in all_titles:
+        svc = service_by_title.get(title)
+        if not svc:
+            continue
+        existing = (
+            db.query(DBUserService)
+            .filter_by(user_id=current_user.id, service_id=svc.id)
+            .first()
+        )
+        if existing:
+            existing.status = ServiceStatus.COMPLETED
+        else:
+            db.add(DBUserService(
+                user_id=current_user.id,
+                service_id=svc.id,
+                status=ServiceStatus.COMPLETED,
+            ))
+
+    db.commit()
+
+    completed_ids = get_completed_service_ids(db, current_user)
+    rec = get_recommended_next_step(db, completed_ids, service_by_title)
+    return OnboardingResponse(
+        onboarding_completed=True,
+        recommended_next_step=build_service_out(rec, completed_ids, db) if rec else None,
+    )
+
+
+# ── SERVICE DETAIL ENDPOINT ───────────────────────────────────────────────────
+
+@app.get("/api/v1/services/{service_id}", response_model=ServiceDetailOut)
+def get_service_detail(
+    service_id: int,
+    db: Session = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    Returns full detail for a single service including whether its
+    prerequisites are satisfied. Drives the mobile "prerequisite blocked"
+    flow: blocked services only allow informational/read-only viewing.
+    """
+    svc = db.query(DBGovService).filter(DBGovService.id == service_id).first()
+    if not svc:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    completed_ids = get_completed_service_ids(db, current_user) if current_user else set()
+    met, missing = get_prerequisite_status(db, svc, completed_ids)
+
+    service_by_title = {s.title: s for s in db.query(DBGovService).all()}
+    rec = get_recommended_next_step(db, completed_ids, service_by_title)
+
+    return ServiceDetailOut(
+        service=build_service_out(svc, completed_ids, db),
+        prerequisites_met=met,
+        missing_prerequisites=missing,
+        recommended_next_step=build_service_out(rec, completed_ids, db) if rec else None,
+    )
+
+
 # ── DASHBOARD ENDPOINT ────────────────────────────────────────────────────────
 
 @app.get("/api/v1/dashboard", response_model=DashboardOut)
@@ -263,30 +467,23 @@ async def get_dashboard_data(
 ):
     """
     Fetches real service catalog and recommendations from SQLite database.
-    Personalizes output if Bearer JWT token is present.
+    Personalizes output (dependency profile, recommended next step) when a
+    Bearer JWT token is present.
     """
-    db_services = db.query(DBGovService).filter(DBGovService.is_active == True).all()
+    db_services = db.query(DBGovService).filter(DBGovService.is_active == True).all()  # noqa: E712
+    service_by_title = {s.title: s for s in db_services}
 
-    catalog_out = [
-        GovServiceOut(
-            id=s.id,
-            title=s.title,
-            category=s.category,
-            description=s.description,
-            department=s.department,
-            estimated_days=s.estimated_days,
-            fee_npr=s.fee_npr
-        )
-        for s in db_services
-    ]
+    completed_ids = get_completed_service_ids(db, current_user) if current_user else set()
+
+    catalog_out = [build_service_out(s, completed_ids, db) for s in db_services]
 
     user_name = current_user.full_name if current_user else "Guest User"
+    needs_onboarding = bool(current_user and not current_user.onboarding_completed)
 
     # Recommendation scoring algorithm based on DB
     # Priority: Identity & Passport/NID services first
     recommendations_out = []
     if catalog_out:
-        # Pick NID & Passport or top 2 services as recommendations
         rec_list = sorted(
             catalog_out,
             key=lambda x: 0 if "Passport" in x.title or "NID" in x.title else 1
@@ -295,10 +492,18 @@ async def get_dashboard_data(
         for r in recommendations_out:
             r.is_recommended = True
 
+    # Recommended next step from the dependency chain
+    next_step = get_recommended_next_step(db, completed_ids, service_by_title)
+    recommended_next_step = (
+        build_service_out(next_step, completed_ids, db) if next_step else None
+    )
+
     return DashboardOut(
         user_name=user_name,
         services=catalog_out,
-        recommendations=recommendations_out
+        recommendations=recommendations_out,
+        needs_onboarding=needs_onboarding,
+        recommended_next_step=recommended_next_step,
     )
 
 

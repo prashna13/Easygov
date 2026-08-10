@@ -17,11 +17,6 @@ class DashboardAdapter(
     private val onItemClick: (GovService) -> Unit
 ) : ListAdapter<GovService, DashboardAdapter.ServiceViewHolder>(ServiceDiffCallback()) {
 
-    class ServiceViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-        val icon: ImageView = view.findViewById(R.id.ivServiceIcon)
-        val name: TextView = view.findViewById(R.id.tvServiceName)
-    }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ServiceViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_dashboard_card, parent, false)
@@ -47,13 +42,18 @@ class DashboardAdapter(
         holder.itemView.setOnClickListener { onItemClick(service) }
     }
 
-    private class ServiceDiffCallback : DiffUtil.ItemCallback<GovService>() {
-        override fun areItemsTheSame(oldItem: GovService, newItem: GovService): Boolean {
-            return oldItem.id == newItem.id
-        }
+    class ServiceViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val icon: ImageView = view.findViewById(R.id.ivServiceIcon)
+        val name: TextView = view.findViewById(R.id.tvServiceName)
+    }
+}
 
-        override fun areContentsTheSame(oldItem: GovService, newItem: GovService): Boolean {
-            return oldItem == newItem
-        }
+private class ServiceDiffCallback : DiffUtil.ItemCallback<GovService>() {
+    override fun areItemsTheSame(oldItem: GovService, newItem: GovService): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: GovService, newItem: GovService): Boolean {
+        return oldItem == newItem
     }
 }

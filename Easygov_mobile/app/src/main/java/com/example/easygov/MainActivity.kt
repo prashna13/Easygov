@@ -15,6 +15,7 @@ class MainActivity : AppCompatActivity() {
 
         // Set the default launch fragment tab when user opens app (Start with Chatbot for now)
         if (savedInstanceState == null) {
+            bottomNav.selectedItemId = R.id.nav_chat
             loadFragment(ChatFragment())
         }
 
