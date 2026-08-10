@@ -68,6 +68,7 @@ class GovServiceOut(BaseModel):
     title: str
     category: str
     description: Optional[str] = None
+    guidance: Optional[str] = None
     department: Optional[str] = None
     estimated_days: Optional[int] = None
     fee_npr: int = 0

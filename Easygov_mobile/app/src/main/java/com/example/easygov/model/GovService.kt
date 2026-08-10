@@ -19,6 +19,9 @@ data class GovService(
     @SerializedName("description")
     val description: String? = null,
 
+    @SerializedName("guidance")
+    val guidance: String? = null,
+
     @SerializedName("department")
     val department: String? = null,
 

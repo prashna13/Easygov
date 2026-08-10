@@ -36,6 +36,9 @@ ADD_COLUMNS = {
         "age":                "INTEGER",
         "onboarding_completed": "BOOLEAN DEFAULT 0 NOT NULL",
     },
+    "gov_services": {
+        "guidance": "TEXT",
+    },
 }
 
 

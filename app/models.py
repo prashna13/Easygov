@@ -128,6 +128,8 @@ class GovService(Base):
         title           : Short display name (e.g. "E-Passport Apply")
         category        : Service category (e.g. "Identity", "Transport", "Business")
         description     : Human-readable explanation of the service
+        guidance        : Full step-by-step guide (overview, prerequisites, documents,
+                          procedure, fees, processing time, official resources)
         department      : Responsible government department/ministry
         estimated_days  : Average processing time in working days
         fee_npr         : Official government fee in Nepali Rupees (0 = free)
@@ -140,6 +142,7 @@ class GovService(Base):
     title          = Column(String(200), nullable=False)
     category       = Column(String(100), nullable=False, index=True)
     description    = Column(Text, nullable=True)
+    guidance       = Column(Text, nullable=True)
     department     = Column(String(200), nullable=True)
     estimated_days = Column(Integer, nullable=True)
     fee_npr        = Column(Integer, default=0, nullable=False)

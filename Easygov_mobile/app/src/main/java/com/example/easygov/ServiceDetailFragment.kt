@@ -13,9 +13,10 @@ import retrofit2.Callback
 import retrofit2.Response
 
 /**
- * Shows full detail for a single government service.
+ * Shows full detail for a single government service, including the official
+ * guide (prerequisites, documents, procedure, fees, processing time, links).
  *
- * When the user is signed in, the backend reports whether the service's
+ * When the user is signed in, the backend also reports whether the service's
  * prerequisites are satisfied. Blocked services only allow informational
  * (read-only) viewing until the user completes the required documents.
  */
@@ -38,12 +39,14 @@ class ServiceDetailFragment : Fragment() {
         val title = arguments?.getString("service_title") ?: "Service Details"
         val category = arguments?.getString("service_category") ?: "General"
         val description = arguments?.getString("service_description")
+        val guidance = arguments?.getString("service_guidance")
 
         view.findViewById<TextView>(R.id.tvDetailTitle).text = title
         view.findViewById<TextView>(R.id.tvDetailCategory).text = category
         if (!description.isNullOrEmpty()) {
             view.findViewById<TextView>(R.id.tvDetailDescription).text = description
         }
+        showGuidance(view, guidance)
 
         val prereqBlockPanel = view.findViewById<View>(R.id.prereqBlockPanel)
         val tvMissingPrereqs = view.findViewById<TextView>(R.id.tvMissingPrereqs)
@@ -67,8 +70,10 @@ class ServiceDetailFragment : Fragment() {
                             response: Response<ServiceDetailResponse>
                         ) {
                             if (response.isSuccessful && response.body() != null) {
+                                val detail = response.body()!!
+                                showGuidance(view, detail.service?.guidance ?: guidance)
                                 applyPrerequisiteState(
-                                    response.body()!!,
+                                    detail,
                                     prereqBlockPanel,
                                     tvMissingPrereqs,
                                     infoNoteLayout,
@@ -82,6 +87,15 @@ class ServiceDetailFragment : Fragment() {
                         }
                     })
             }
+        }
+    }
+
+    private fun showGuidance(view: View, guidance: String?) {
+        val guidancePanel = view.findViewById<View>(R.id.guidancePanel)
+        val tvDetailGuidance = view.findViewById<TextView>(R.id.tvDetailGuidance)
+        if (!guidance.isNullOrBlank()) {
+            tvDetailGuidance.text = guidance
+            guidancePanel.visibility = View.VISIBLE
         }
     }
 
@@ -118,7 +132,8 @@ class ServiceDetailFragment : Fragment() {
             serviceId: Int,
             title: String,
             category: String,
-            description: String?
+            description: String?,
+            guidance: String? = null
         ): ServiceDetailFragment {
             val fragment = ServiceDetailFragment()
             val args = Bundle().apply {
@@ -126,6 +141,7 @@ class ServiceDetailFragment : Fragment() {
                 putString("service_title", title)
                 putString("service_category", category)
                 putString("service_description", description)
+                putString("service_guidance", guidance)
             }
             fragment.arguments = args
             return fragment

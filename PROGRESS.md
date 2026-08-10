@@ -114,9 +114,9 @@ EasyGov_project/
 | POST | `/auth/register` | LIVE | Creates user, hashes password with bcrypt, returns JWT token |
 | POST | `/auth/login` | LIVE | Verifies bcrypt password, returns JWT token + user profile |
 | GET | `/auth/me` | LIVE | Protected endpoint — returns profile of current Bearer token holder |
-| GET | `/api/v1/dashboard` | LIVE | Real DB query from SQLite `gov_services` (personalizes if Bearer token present) |
+| GET | `/api/v1/dashboard` | LIVE | Real DB query from SQLite `gov_services` — 4 active services with official guidance (personalizes if Bearer token present) |
 | POST | `/api/v1/onboarding` | LIVE | First-login onboarding: age + owned documents → marks services completed, unlocks personalized chain |
-| GET | `/api/v1/services/{service_id}` | LIVE | Service detail + `prerequisites_met` / `missing_prerequisites` (drives Android blocked flow) |
+| GET | `/api/v1/services/{service_id}` | LIVE | Service detail + `guidance` + `prerequisites_met` / `missing_prerequisites` (drives Android blocked flow) |
 | GET | `/chat/history` | LIVE | Protected — returns saved chat history for the authenticated user |
 | GET | `/api/v1/user/progress` | NOT BUILT | Planned next |
 | PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Planned — mark a step complete |
@@ -145,6 +145,8 @@ EasyGov_project/
 - [x] **Android Onboarding**: `OnboardingFragment` (age + document checklist) auto-shown when `needs_onboarding` is true; submits to backend then refreshes dashboard
 - [x] **Android Next-Step Banner**: Dashboard shows a tappable "Recommended Next Step" banner; service cards open `ServiceDetailFragment` with real service id
 - [x] **Android Blocked Service Flow**: `ServiceDetailFragment` fetches prerequisite status; blocked services show a warning panel with read-only informational mode
+- [x] **Real Services + Guidance**: Dashboard now shows 4 real services (Citizenship, NID, E-Passport, Driving License) with official guide content (prerequisites, documents, procedure, fees, processing time, resources) stored in `gov_services.guidance` and rendered on the service detail screen
+- [x] **Dependency Chain Rebuilt**: Rules now follow the guide's chain — Citizenship (root) → NID → Passport / Driving License; filler services (Bluebook, Business, Birth) retained but inactive
 
 ---
 
@@ -177,3 +179,6 @@ EasyGov_project/
 | 2026-08-08 | Added `age` + `onboarding_completed` to `User`, migrated existing DB, seeded Birth→Citizenship rule |
 | 2026-08-08 | Built onboarding + prerequisite-blocking backend (`POST /api/v1/onboarding`, `GET /api/v1/services/{id}`, updated dashboard), verified end-to-end |
 | 2026-08-08 | Android: `OnboardingFragment`, next-step banner, blocked-service read-only flow; built APK successfully |
+| 2026-08-10 | Added `guidance` column to `gov_services`; rewrote seed with real content from Nepal Essential Documents Guide for Citizenship, NID, E-Passport, and new Driving License service |
+| 2026-08-10 | Rebuilt prerequisite rules + `NEXT_STEP_CHAIN` to guide's chain (Citizenship → NID → Passport / Driving License); deactivated Bluebook/Business/Birth |
+| 2026-08-10 | Android: service detail now renders full official guide; onboarding checklist updated to the 4 documents; APK rebuilt |

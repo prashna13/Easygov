@@ -38,18 +38,16 @@ class OnboardingFragment : Fragment() {
         val btnSubmit = view.findViewById<Button>(R.id.btnSubmitOnboarding)
 
         val checkboxes = listOf(
-            view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbBirthCertificate),
             view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbCitizenship),
             view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbNid),
             view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbPassport),
-            view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbBusinessRegistration)
+            view.findViewById<com.google.android.material.checkbox.MaterialCheckBox>(R.id.cbDrivingLicense)
         )
         val documentKeys = listOf(
-            "birth_certificate",
             "citizenship",
             "nid",
             "passport",
-            "business_registration"
+            "driving_license"
         )
 
         btnSubmit.setOnClickListener {

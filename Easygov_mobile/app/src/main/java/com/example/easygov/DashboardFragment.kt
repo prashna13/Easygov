@@ -121,7 +121,8 @@ class DashboardFragment : Fragment() {
             service.id,
             service.title,
             service.category,
-            service.description
+            service.description,
+            service.guidance
         )
 
         parentFragmentManager.beginTransaction()

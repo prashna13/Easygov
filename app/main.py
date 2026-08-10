@@ -66,24 +66,24 @@ retriever_k = int(os.getenv("RETRIEVER_K", "6"))
 # ── ONBOARDING / DOCUMENT DEPENDENCY PROFILE ────────────────────────────────
 # Keys sent by the mobile app map to gov_services.title values.
 ONBOARDING_DOCUMENTS = {
-    "birth_certificate": "Birth Certificate",
     "citizenship":       "Citizenship Certificate Copy",
     "nid":               "NID Registration",
     "passport":          "E-Passport Apply",
-    "company":           "Business Registration",
+    "driving_license":   "Driving License",
 }
 
 # Ordered dependency chain used to pick the recommended "next step".
+# Citizenship is the root document; NID builds on it; passport and driving
+# license come last (per the Nepal Essential Documents Guide).
 NEXT_STEP_CHAIN = [
-    "Birth Certificate",
     "Citizenship Certificate Copy",
     "NID Registration",
     "E-Passport Apply",
-    "Business Registration",
+    "Driving License",
 ]
 
 # When every document in the chain is complete, fall back to this service.
-NEXT_STEP_FALLBACK = "Bluebook Renewal"
+NEXT_STEP_FALLBACK = "Driving License"
 
 
 def get_completed_service_ids(db: Session, user: User) -> set:
@@ -144,6 +144,7 @@ def build_service_out(service, completed_ids: set, db: Session) -> GovServiceOut
         title=service.title,
         category=service.category,
         description=service.description,
+        guidance=service.guidance,
         department=service.department,
         estimated_days=service.estimated_days,
         fee_npr=service.fee_npr,
