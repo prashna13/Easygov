@@ -21,5 +21,6 @@ data class ServiceDetailResponse(
     @SerializedName("service") val service: GovService? = null,
     @SerializedName("prerequisites_met") val prerequisitesMet: Boolean = true,
     @SerializedName("missing_prerequisites") val missingPrerequisites: List<String> = emptyList(),
-    @SerializedName("recommended_next_step") val recommendedNextStep: GovService? = null
+    @SerializedName("recommended_next_step") val recommendedNextStep: GovService? = null,
+    @SerializedName("application") val application: ApplicationProgress? = null
 )

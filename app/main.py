@@ -7,6 +7,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 from fastapi import FastAPI, HTTPException, Depends, status
 from pydantic import BaseModel
 from typing import List, Optional
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
@@ -18,14 +19,17 @@ from app.models import (
     User,
     GovService as DBGovService,
     UserService as DBUserService,
+    Progress as DBProgress,
     PrerequisiteRule,
     ChatMessage,
     ServiceStatus,
+    StepStatus,
 )
 from app.schemas import (
     UserRegister, UserLogin, UserOut, TokenResponse,
     DashboardOut, GovServiceOut, ChatHistoryOut,
     OnboardingRequest, OnboardingResponse, ServiceDetailOut,
+    ApplicationOut, ProgressStepOut,
 )
 from app.auth_utils import (
     hash_password, verify_password, create_access_token,
@@ -84,6 +88,109 @@ NEXT_STEP_CHAIN = [
 
 # When every document in the chain is complete, fall back to this service.
 NEXT_STEP_FALLBACK = "Driving License"
+
+# Step-level progress checklist created when a user starts an application
+# for a service. Keyed by gov_services.title; each entry is a list of
+# (step_name, step_description) pairs shown in the app's progress tracker.
+STEP_TEMPLATES = {
+    "Citizenship Certificate Copy": [
+        ("Gather Documents", (
+            "Collect the Ward Office recommendation letter, both parents' citizenship "
+            "certificates, birth registration, school/character certificate, parents' "
+            "marriage certificate, two passport-size photos and an NPR 10 revenue stamp."
+        )),
+        ("Obtain Ward Office Recommendation", (
+            "Visit your local Ward Office with the original documents. The ward certifies "
+            "your identity and permanent residence before you file at the DAO."
+        )),
+        ("Submit Application at DAO", (
+            "Fill the Schedule-1 application form, attach the revenue stamp, and submit it at "
+            "the DAO's citizenship section together with your adult witness."
+        )),
+        ("Verification & Collection", (
+            "Attend verification if a spot inquiry (Sarjaamin) is called, then collect your "
+            "certificate — often the same day or within a few working days."
+        )),
+    ],
+    "NID Registration": [
+        ("Pre-Enroll Online", (
+            "Log in or create an account at donidcr.gov.np and verify your mobile number with "
+            "the OTP. Start a 'New Enrollment' and fill in details that match your citizenship "
+            "certificate exactly."
+        )),
+        ("Upload Documents & Book Appointment", (
+            "Upload your citizenship certificate (and marriage certificate if applicable), "
+            "select your enrollment centre and appointment date, then print your token slip."
+        )),
+        ("Biometric Enrollment", (
+            "Attend in person — face and ears clearly visible. Complete photo, ten-finger "
+            "fingerprints, iris scan, and digital signature; review the report on the spot."
+        )),
+        ("Receive NIN Confirmation", (
+            "Get your interim National Identity Number confirmation, usable immediately while "
+            "the physical card is being printed."
+        )),
+        ("Collect NID Card", (
+            "Collect your physical NID card from the enrollment centre when notified — this can "
+            "take a few weeks to a few months depending on the national backlog."
+        )),
+    ],
+    "E-Passport Apply": [
+        ("Pre-Enrollment Online", (
+            "Complete the online pre-enrollment form at emrtds.nepalpassport.gov.np with your "
+            "citizenship and NID details."
+        )),
+        ("Select Office & Book Appointment", (
+            "Choose the Department of Passports HQ, a District Administration Office, or an "
+            "embassy/consulate, then pick an appointment date and time slot."
+        )),
+        ("Pay Fee & Print Slip", (
+            "Pay the applicable fee (e.g. NPR 5,000 for a regular 34-page passport) and print "
+            "your pre-enrollment slip."
+        )),
+        ("Attend Biometric Appointment", (
+            "Appear in person with all original documents. Live photo, fingerprints and document "
+            "verification are captured on-site."
+        )),
+        ("Collect Passport", (
+            "Collect your passport from the office where you applied — DAOs typically take 7–15 "
+            "working days, embassies 4–8 weeks."
+        )),
+    ],
+    "Driving License": [
+        ("Register on DoTM Portal", (
+            "Log in at applydlnew.dotm.gov.np (or via Nagarik App) and complete your profile; "
+            "scan the QR code on your NID to auto-fill much of the form."
+        )),
+        ("Upload Documents & Pay Fee", (
+            "Upload citizenship, blood group certificate, eye test certificate (Category B and "
+            "above), medical certificate and photographs, then pay the government fee online."
+        )),
+        ("Book & Attend Verification", (
+            "Book an appointment at your chosen Transport Management Office and visit on the "
+            "date with original documents for verification and biometric enrollment."
+        )),
+        ("Pass Written Exam", (
+            "Sit the written knowledge test at the office (or a computer-based test in some "
+            "regions)."
+        )),
+        ("Pass Practical Trial", (
+            "If you pass the written exam you are scheduled for the practical trial test — you "
+            "need a minimum of ~70/100 points."
+        )),
+        ("Collect License", (
+            "Pay the final issuance fee, receive a temporary driving slip while the smart card "
+            "prints, then collect your license when notified (typically 15–30 working days)."
+        )),
+    ],
+}
+
+# Fallback when a service has no specific step template defined.
+DEFAULT_STEP_TEMPLATE = [
+    ("Submit Application", "Submit your application and supporting documents to the responsible office."),
+    ("Processing", "The responsible department reviews and processes your application."),
+    ("Collection", "Collect your certificate/card/license once processing is complete."),
+]
 
 
 def get_completed_service_ids(db: Session, user: User) -> set:
@@ -150,6 +257,29 @@ def build_service_out(service, completed_ids: set, db: Session) -> GovServiceOut
         fee_npr=service.fee_npr,
         prerequisites_met=met,
         missing_prerequisites=missing,
+    )
+
+
+def build_application_out(db: Session, us: DBUserService) -> ApplicationOut:
+    """Build an ApplicationOut for a UserService record, computing progress %."""
+    steps = (
+        db.query(DBProgress)
+        .filter(DBProgress.user_service_id == us.id)
+        .order_by(DBProgress.step_number)
+        .all()
+    )
+    total = len(steps)
+    done = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
+    percent = round((done / total) * 100) if total else 0
+    return ApplicationOut(
+        application_id=us.id,
+        service_id=us.service_id,
+        service_title=us.service.title,
+        status=us.status.value,
+        progress_percent=percent,
+        started_at=us.started_at,
+        completed_at=us.completed_at,
+        steps=[ProgressStepOut.model_validate(s) for s in steps],
     )
 
 
@@ -451,12 +581,181 @@ def get_service_detail(
     service_by_title = {s.title: s for s in db.query(DBGovService).all()}
     rec = get_recommended_next_step(db, completed_ids, service_by_title)
 
+    application = None
+    if current_user:
+        existing_us = (
+            db.query(DBUserService)
+            .filter_by(user_id=current_user.id, service_id=svc.id)
+            .first()
+        )
+        if existing_us and existing_us.status != ServiceStatus.NOT_STARTED:
+            application = build_application_out(db, existing_us)
+
     return ServiceDetailOut(
         service=build_service_out(svc, completed_ids, db),
         prerequisites_met=met,
         missing_prerequisites=missing,
         recommended_next_step=build_service_out(rec, completed_ids, db) if rec else None,
+        application=application,
     )
+
+
+# ── APPLICATION PROGRESS ENDPOINTS ────────────────────────────────────────────
+
+@app.post("/api/v1/services/{service_id}/apply", response_model=ApplicationOut)
+def start_application(
+    service_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Starts a new application for a service: creates a UserService record
+    (status IN_PROGRESS) and a step-level progress checklist.
+    """
+    svc = db.query(DBGovService).filter(DBGovService.id == service_id).first()
+    if not svc:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    completed_ids = get_completed_service_ids(db, current_user)
+    met, missing = get_prerequisite_status(db, svc, completed_ids)
+    if not met:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="This service's prerequisites are not met. Complete first: "
+                   + ", ".join(missing),
+        )
+
+    existing = (
+        db.query(DBUserService)
+        .filter_by(user_id=current_user.id, service_id=svc.id)
+        .first()
+    )
+    if existing and existing.status == ServiceStatus.COMPLETED:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="You have already completed this service.",
+        )
+    if existing:
+        # Idempotent: an open application already exists, just return it.
+        return build_application_out(db, existing)
+
+    us = DBUserService(
+        user_id=current_user.id,
+        service_id=svc.id,
+        status=ServiceStatus.IN_PROGRESS,
+        started_at=func.now(),
+    )
+    db.add(us)
+    db.flush()
+
+    template = STEP_TEMPLATES.get(svc.title, DEFAULT_STEP_TEMPLATE)
+    for idx, (name, desc) in enumerate(template, start=1):
+        db.add(DBProgress(
+            user_service_id=us.id,
+            step_number=idx,
+            step_name=name,
+            step_description=desc,
+            status=StepStatus.IN_PROGRESS if idx == 1 else StepStatus.PENDING,
+        ))
+
+    db.commit()
+    db.refresh(us)
+    return build_application_out(db, us)
+
+
+@app.get("/api/v1/applications", response_model=List[ApplicationOut])
+def list_applications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns all of the user's applications (user_service records) with
+    step-level progress, newest first. Drives the profile "My Progress" list."""
+    records = (
+        db.query(DBUserService)
+        .filter(DBUserService.user_id == current_user.id)
+        .order_by(DBUserService.updated_at.desc())
+        .all()
+    )
+    return [build_application_out(db, us) for us in records]
+
+
+@app.get("/api/v1/applications/{application_id}", response_model=ApplicationOut)
+def get_application(
+    application_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Returns a user's application with its step-level progress."""
+    us = (
+        db.query(DBUserService)
+        .filter(DBUserService.id == application_id, DBUserService.user_id == current_user.id)
+        .first()
+    )
+    if not us:
+        raise HTTPException(status_code=404, detail="Application not found")
+    return build_application_out(db, us)
+
+
+@app.post(
+    "/api/v1/applications/{application_id}/steps/{step_number}/complete",
+    response_model=ApplicationOut,
+)
+def complete_application_step(
+    application_id: int,
+    step_number: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Marks a step of the user's application as COMPLETED and advances the
+    checklist. When all steps are done, the application itself is COMPLETED.
+    """
+    us = (
+        db.query(DBUserService)
+        .filter(DBUserService.id == application_id, DBUserService.user_id == current_user.id)
+        .first()
+    )
+    if not us:
+        raise HTTPException(status_code=404, detail="Application not found")
+    if us.status == ServiceStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="This application is already completed.")
+
+    step = (
+        db.query(DBProgress)
+        .filter(
+            DBProgress.user_service_id == us.id,
+            DBProgress.step_number == step_number,
+        )
+        .first()
+    )
+    if not step:
+        raise HTTPException(status_code=404, detail="Step not found")
+    if step.status == StepStatus.COMPLETED:
+        raise HTTPException(status_code=400, detail="This step is already completed.")
+
+    step.status = StepStatus.COMPLETED
+    step.completed_at = func.now()
+
+    steps = (
+        db.query(DBProgress)
+        .filter(DBProgress.user_service_id == us.id)
+        .order_by(DBProgress.step_number)
+        .all()
+    )
+    all_done = all(s.status == StepStatus.COMPLETED for s in steps)
+    if all_done:
+        us.status = ServiceStatus.COMPLETED
+        us.completed_at = func.now()
+    else:
+        # Advance the next pending step to IN_PROGRESS.
+        for s in steps:
+            if s.status == StepStatus.PENDING:
+                s.status = StepStatus.IN_PROGRESS
+                break
+
+    db.commit()
+    db.refresh(us)
+    return build_application_out(db, us)
 
 
 # ── DASHBOARD ENDPOINT ────────────────────────────────────────────────────────

@@ -41,11 +41,11 @@ EasyGov_project/
 ├── app/
 │   ├── database.py             # [DONE] SQLAlchemy engine + get_db() dependency
 │   ├── models.py               # [DONE] 6 ORM models (users, chat_messages, gov_services, prerequisite_rules, user_services, progress)
-│   ├── schemas.py              # [DONE] Pydantic schemas (UserRegister, UserLogin, TokenResponse, DashboardOut, ChatHistoryOut)
+│   ├── schemas.py              # [DONE] Pydantic schemas (auth, dashboard, onboarding, application progress)
 │   ├── auth_utils.py           # [DONE] Password hashing, JWT token encoding/decoding, get_current_user dependencies
 │   ├── migrate.py              # [DONE] Table creation script (idempotent)
 │   ├── seed_data.py            # [DONE] Seed script (re-runnable, skip-on-duplicate)
-│   ├── main.py                 # FastAPI app — /ask, /auth/register, /auth/login, /auth/me, /api/v1/dashboard
+│   ├── main.py                 # FastAPI app — /ask, auth, dashboard, onboarding, service detail, application progress endpoints
 │   ├── ingest_data.py          # PDF/MD ingestion pipeline → ChromaDB
 │   ├── frontend.py             # Streamlit web UI (dev/demo only)
 │   └── db_handeler.py          # [EMPTY PLACEHOLDER] — not implemented yet
@@ -64,8 +64,11 @@ EasyGov_project/
         │   ├── DashboardFragment.kt     # [DONE] Uses stored Bearer token from SessionManager, real DB data
         │   ├── LoginFragment.kt         # [DONE] Calls POST /auth/login, saves JWT via SessionManager
         │   ├── RegisterFragment.kt      # [DONE] Calls POST /auth/register, auto-login after signup
-        │   ├── ProfileFragment.kt       # [DONE] Shows saved name/email, logout → LoginFragment
-        │   ├── ServiceDetailFragment.kt # [STATIC] Title/category/description only (progress checklist PENDING)
+        │   ├── ProfileFragment.kt       # [DONE] Full profile from /auth/me + "My Applications & Progress" list
+        │   ├── ApplicationsAdapter.kt   # [DONE] Profile application cards (title/status/progress %) → open tracker
+        │   ├── ServiceDetailFragment.kt # [DONE] Detail + guide + prereq blocking; Apply Now starts an application
+        │   ├── ApplicationProgressFragment.kt # [DONE] Step checklist + progress bar; ticks steps complete
+        │   ├── ProgressStepAdapter.kt    # [DONE] Checklist adapter (current step tappable only)
         │   ├── DashboardAdapter.kt
         │   ├── ChatHistoryAdapter.kt    # [DONE] Adapter for chat history bottom sheet
         │   ├── ChatHistoryBottomSheet.kt# [DONE] Fetches /chat/history, newest-first list
@@ -74,9 +77,11 @@ EasyGov_project/
         │   ├── model/
         │   │   ├── GovService.kt
         │   │   ├── DashboardResponse.kt
+        │   │   ├── OnboardingModels.kt    # [DONE] Onboarding request/response + ServiceDetailResponse (includes application)
+        │   │   ├── ApplicationModels.kt   # [DONE] ApplicationProgress + ProgressStep DTOs
         │   │   └── AuthModels.kt        # [DONE] LoginRequest, RegisterRequest, TokenResponse, UserOut
         │   └── network/
-        │       ├── ApiService.kt        # [DONE] Endpoints: /api/v1/dashboard, /ask, /chat/history, /auth/login, /auth/register
+        │       ├── ApiService.kt        # [DONE] Endpoints: dashboard, onboarding, services, apply, applications, steps, /ask, /chat/history, /auth/*
         │       └── RetrofitClient.kt    # [DONE] Base URL: http://10.0.2.2:8000/ (Emulator standard)
         └── res/layout/
             ├── activity_main.xml
@@ -85,7 +90,10 @@ EasyGov_project/
             ├── fragment_login.xml
             ├── fragment_register.xml
             ├── fragment_profile.xml
+            ├── item_application_card.xml
             ├── fragment_service_detail.xml
+            ├── fragment_application_progress.xml
+            ├── item_progress_step.xml
             ├── bottom_sheet_chat_history.xml
             ├── item_dashboard_card.xml
             └── item_chat_history.xml
@@ -113,13 +121,17 @@ EasyGov_project/
 | POST | `/ask` | LIVE | RAG chatbot — question → ChromaDB → LLM → answer + sources |
 | POST | `/auth/register` | LIVE | Creates user, hashes password with bcrypt, returns JWT token |
 | POST | `/auth/login` | LIVE | Verifies bcrypt password, returns JWT token + user profile |
-| GET | `/auth/me` | LIVE | Protected endpoint — returns profile of current Bearer token holder |
+| GET | `/auth/me` | LIVE | Protected — full profile: name, email, phone, citizenship no., province, age, DOB, address, onboarding status |
+| GET | `/api/v1/applications` | LIVE | Protected — all user applications (title, status, progress %, steps), newest first; drives profile progress list |
 | GET | `/api/v1/dashboard` | LIVE | Real DB query from SQLite `gov_services` — 4 active services with official guidance (personalizes if Bearer token present) |
 | POST | `/api/v1/onboarding` | LIVE | First-login onboarding: age + owned documents → marks services completed, unlocks personalized chain |
-| GET | `/api/v1/services/{service_id}` | LIVE | Service detail + `guidance` + `prerequisites_met` / `missing_prerequisites` (drives Android blocked flow) |
+| GET | `/api/v1/services/{service_id}` | LIVE | Service detail + `guidance` + `prerequisites_met` / `missing_prerequisites` + existing `application` (drives Android blocked flow) |
+| POST | `/api/v1/services/{service_id}/apply` | LIVE | Starts an application → creates `user_service` (IN_PROGRESS) + step checklist from `STEP_TEMPLATES` (idempotent, prerequisite-checked) |
+| GET | `/api/v1/applications/{application_id}` | LIVE | Protected — returns an application with step-level progress % |
+| POST | `/api/v1/applications/{application_id}/steps/{step_number}/complete` | LIVE | Marks a step COMPLETED, advances next pending step; completes application when all steps done |
 | GET | `/chat/history` | LIVE | Protected — returns saved chat history for the authenticated user |
-| GET | `/api/v1/user/progress` | NOT BUILT | Planned next |
-| PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Planned — mark a step complete |
+| GET | `/api/v1/user/progress` | NOT BUILT | Replaced by `/api/v1/applications` (aggregate) + `/api/v1/applications/{id}` (detail) |
+| PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Superseded by `POST /api/v1/applications/{id}/steps/{n}/complete` (build separately if desired) |
 
 ---
 
@@ -147,18 +159,23 @@ EasyGov_project/
 - [x] **Android Blocked Service Flow**: `ServiceDetailFragment` fetches prerequisite status; blocked services show a warning panel with read-only informational mode
 - [x] **Real Services + Guidance**: Dashboard now shows 4 real services (Citizenship, NID, E-Passport, Driving License) with official guide content (prerequisites, documents, procedure, fees, processing time, resources) stored in `gov_services.guidance` and rendered on the service detail screen
 - [x] **Dependency Chain Rebuilt**: Rules now follow the guide's chain — Citizenship (root) → NID → Passport / Driving License; filler services (Bluebook, Business, Birth) retained but inactive
+- [x] **Application Progress Backend**: `POST /api/v1/services/{id}/apply` starts an application (creates `user_service` + step checklist from per-service `STEP_TEMPLATES`); `GET /api/v1/applications/{id}` returns progress %; `POST .../steps/{n}/complete` ticks steps and auto-completes the application; service detail now returns the user's existing `application`
+- [x] **Android Application Progress**: "Apply Now" on the service detail starts an application (or opens "View My Application"); new `ApplicationProgressFragment` shows status chip, progress bar + %, and a tappable step checklist that marks steps complete via the backend
+- [x] **Rich Profile Backend**: `/auth/me` now returns full profile (age, DOB, address, onboarding status); new `GET /api/v1/applications` returns all user applications with progress %
+- [x] **Android Profile Page**: `ProfileFragment` shows full personal info from `/auth/me` plus a "My Applications & Progress" list (status chips + progress bars) that opens each application's tracker; logout retained; APK built
 
 ---
 
 ## What Is Pending
 
 ### Medium Priority - Backend DB Progress Endpoints
-- [ ] `GET /api/v1/user/progress` — return user's service history with step-level detail from SQLite
-- [ ] `PATCH /api/v1/user/services/{service_id}/progress/{step_id}` — mark a step complete in SQLite
+- [ ] Resubmit/retry flow for `REJECTED` applications
+- [ ] Edit profile endpoint (`PATCH /auth/me`) so users can update phone/address/DOB from the app
 
 ### Medium Priority - Android UI
-- [ ] Show user's actual step progress checklist on `ServiceDetailFragment` (currently static title/category/description only)
-- [ ] Auto-create `user_service` + progress steps when a user starts a new service from the catalog
+- [ ] "My Applications" section on the **dashboard** (currently on Profile screen) so started applications are visible without switching tabs
+- [ ] Dashboard service cards show a small status badge (IN PROGRESS / COMPLETED) using the service detail application info
+- [ ] Confirmation UI / receipt reference after an application completes
 
 ---
 
@@ -182,3 +199,7 @@ EasyGov_project/
 | 2026-08-10 | Added `guidance` column to `gov_services`; rewrote seed with real content from Nepal Essential Documents Guide for Citizenship, NID, E-Passport, and new Driving License service |
 | 2026-08-10 | Rebuilt prerequisite rules + `NEXT_STEP_CHAIN` to guide's chain (Citizenship → NID → Passport / Driving License); deactivated Bluebook/Business/Birth |
 | 2026-08-10 | Android: service detail now renders full official guide; onboarding checklist updated to the 4 documents; APK rebuilt |
+| 2026-08-11 | **Application progress tracking**: backend `/apply`, `/applications/{id}`, `/applications/{id}/steps/{n}/complete` + `STEP_TEMPLATES` for all 4 services; verified end-to-end (blocked apply → 400, apply → steps, complete → advances → auto-complete) |
+| 2026-08-11 | Android: `ApplicationModels.kt`, `ApplicationProgressFragment` + layout + `ProgressStepAdapter`, wired Apply Now on service detail; APK built successfully |
+| 2026-08-11 | Rich profile: `/auth/me` extended (age, DOB, address, onboarding), new `GET /api/v1/applications`; seed backfills profile for existing test user |
+| 2026-08-11 | Android: rewrote `ProfileFragment` + layout — full personal info panel + "My Applications & Progress" list (status chips, progress bars, tap-to-open tracker); APK built successfully |

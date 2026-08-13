@@ -32,6 +32,10 @@ class UserOut(BaseModel):
     phone: Optional[str] = None
     citizenship_number: Optional[str] = None
     province: Optional[str] = None
+    age: Optional[int] = None
+    date_of_birth: Optional[date] = None
+    address: Optional[str] = None
+    onboarding_completed: bool = False
     is_active: bool
 
     class Config:
@@ -86,6 +90,33 @@ class ServiceDetailOut(BaseModel):
     prerequisites_met: bool
     missing_prerequisites: List[str] = []
     recommended_next_step: Optional[GovServiceOut] = None
+    application: Optional["ApplicationOut"] = None
+
+
+# ── APPLICATION PROGRESS SCHEMAS ──────────────────────────────────────────────
+
+class ProgressStepOut(BaseModel):
+    """A single step within a user's application for a service."""
+    step_number: int
+    step_name: str
+    step_description: Optional[str] = None
+    status: str
+    completed_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+class ApplicationOut(BaseModel):
+    """A user's application for a service, with step-level progress."""
+    application_id: int
+    service_id: int
+    service_title: str
+    status: str
+    progress_percent: int = 0
+    started_at: Optional[datetime] = None
+    completed_at: Optional[datetime] = None
+    steps: List[ProgressStepOut] = []
 
 
 class ChatMessageOut(BaseModel):

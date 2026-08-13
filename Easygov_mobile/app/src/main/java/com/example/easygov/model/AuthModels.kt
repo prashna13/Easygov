@@ -23,6 +23,10 @@ data class UserOut(
     @SerializedName("phone") val phone: String? = null,
     @SerializedName("citizenship_number") val citizenshipNumber: String? = null,
     @SerializedName("province") val province: String? = null,
+    @SerializedName("age") val age: Int? = null,
+    @SerializedName("date_of_birth") val dateOfBirth: String? = null,
+    @SerializedName("address") val address: String? = null,
+    @SerializedName("onboarding_completed") val onboardingCompleted: Boolean = false,
     @SerializedName("is_active") val isActive: Boolean = true
 )
 

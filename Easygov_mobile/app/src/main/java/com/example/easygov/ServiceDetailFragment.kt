@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.ServiceDetailResponse
 import com.example.easygov.network.RetrofitClient
 import retrofit2.Call
@@ -23,6 +25,8 @@ import retrofit2.Response
 class ServiceDetailFragment : Fragment() {
 
     private var readOnlyMode = false
+    private var applicationId: Int? = null
+    private var isApplying = false
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -52,12 +56,20 @@ class ServiceDetailFragment : Fragment() {
         val tvMissingPrereqs = view.findViewById<TextView>(R.id.tvMissingPrereqs)
         val infoNoteLayout = view.findViewById<View>(R.id.infoNoteLayout)
         val btnViewInfo = view.findViewById<View>(R.id.btnViewInfo)
-        val btnApplyNow = view.findViewById<View>(R.id.btnApplyNow)
+        val btnApplyNow = view.findViewById<TextView>(R.id.btnApplyNow)
 
         btnViewInfo.setOnClickListener {
             readOnlyMode = true
             prereqBlockPanel.visibility = View.GONE
             infoNoteLayout.visibility = View.VISIBLE
+        }
+
+        btnApplyNow.setOnClickListener {
+            if (applicationId != null) {
+                openApplicationProgress(applicationId!!)
+            } else {
+                startApplication(serviceId)
+            }
         }
 
         if (serviceId > 0) {
@@ -99,16 +111,77 @@ class ServiceDetailFragment : Fragment() {
         }
     }
 
+    private fun startApplication(serviceId: Int) {
+        if (isApplying || serviceId <= 0) return
+        isApplying = true
+
+        val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
+        if (authToken == null) {
+            isApplying = false
+            Toast.makeText(requireContext(), "Please sign in to start an application.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        RetrofitClient.apiService.startApplication(authToken, serviceId)
+            .enqueue(object : Callback<ApplicationProgress> {
+                override fun onResponse(
+                    call: Call<ApplicationProgress>,
+                    response: Response<ApplicationProgress>
+                ) {
+                    isApplying = false
+                    if (response.isSuccessful && response.body() != null) {
+                        openApplicationProgress(response.body()!!.applicationId)
+                    } else {
+                        val msg = try {
+                            response.errorBody()?.string()
+                        } catch (e: Exception) {
+                            null
+                        }
+                        Toast.makeText(
+                            requireContext(),
+                            msg ?: "Could not start application (${response.code()})",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<ApplicationProgress>, t: Throwable) {
+                    isApplying = false
+                    Toast.makeText(
+                        requireContext(),
+                        "Network failure: ${t.localizedMessage}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            })
+    }
+
+    private fun openApplicationProgress(applicationId: Int) {
+        val title = arguments?.getString("service_title") ?: "Application"
+        val fragment = ApplicationProgressFragment.newInstance(applicationId, title)
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
     private fun applyPrerequisiteState(
         detail: ServiceDetailResponse,
         prereqBlockPanel: View,
         tvMissingPrereqs: TextView,
         infoNoteLayout: View,
-        btnApplyNow: View
+        btnApplyNow: TextView
     ) {
         if (readOnlyMode) {
             infoNoteLayout.visibility = View.VISIBLE
             return
+        }
+
+        detail.application?.let { app ->
+            if (app.status != "COMPLETED") {
+                applicationId = app.applicationId
+                btnApplyNow.text = "View My Application"
+            }
         }
 
         if (detail.prerequisitesMet) {

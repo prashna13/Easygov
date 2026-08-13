@@ -3,10 +3,12 @@ package com.example.easygov.network
 import com.example.easygov.ChatHistoryResponse
 import com.example.easygov.ChatRequest
 import com.example.easygov.ChatResponse
+import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.DashboardResponse
 import com.example.easygov.model.OnboardingRequest
 import com.example.easygov.model.OnboardingResponse
 import com.example.easygov.model.ServiceDetailResponse
+import com.example.easygov.model.UserOut
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
@@ -48,6 +50,53 @@ interface ApiService {
         @Header("Authorization") authToken: String,
         @Path("serviceId") serviceId: Int
     ): Call<ServiceDetailResponse>
+
+    /**
+     * Starts an application for a service, creating its step-level progress
+     * checklist. Returns the application with its steps.
+     */
+    @POST("/api/v1/services/{serviceId}/apply")
+    fun startApplication(
+        @Header("Authorization") authToken: String,
+        @Path("serviceId") serviceId: Int
+    ): Call<ApplicationProgress>
+
+    /**
+     * Returns the authenticated user's full profile.
+     */
+    @GET("/auth/me")
+    fun getProfile(
+        @Header("Authorization") authToken: String
+    ): Call<UserOut>
+
+    /**
+     * Returns all of the user's applications with step-level progress,
+     * newest first. Drives the profile "My Progress" section.
+     */
+    @GET("/api/v1/applications")
+    fun getApplications(
+        @Header("Authorization") authToken: String
+    ): Call<List<ApplicationProgress>>
+
+    /**
+     * Fetches a user's application and its step-level progress.
+     */
+    @GET("/api/v1/applications/{applicationId}")
+    fun getApplication(
+        @Header("Authorization") authToken: String,
+        @Path("applicationId") applicationId: Int
+    ): Call<ApplicationProgress>
+
+    /**
+     * Marks a step of an application as COMPLETED and advances the checklist.
+     * Returns the updated application.
+     */
+    @POST("/api/v1/applications/{applicationId}/steps/{stepNumber}/complete")
+    fun completeStep(
+        @Header("Authorization") authToken: String,
+        @Path("applicationId") applicationId: Int,
+        @Path("stepNumber") stepNumber: Int
+    ): Call<ApplicationProgress>
 
     /**
      * Sends a question to the RAG AI chatbot.

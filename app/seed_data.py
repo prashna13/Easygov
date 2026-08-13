@@ -484,7 +484,14 @@ def seed_test_user(db) -> User:
     print("\n[USER] Seeding test user...")
     existing = db.query(User).filter_by(email=TEST_USER["email"]).first()
     if existing:
-        print(f"   [SKIP] User '{TEST_USER['email']}' (already exists)")
+        # Backfill profile fields added after this user was first seeded so
+        # the demo profile stays complete (age, onboarding, DOB, address).
+        existing.age = TEST_USER.get("age", existing.age)
+        existing.date_of_birth = TEST_USER.get("date_of_birth", existing.date_of_birth)
+        existing.address = TEST_USER.get("address", existing.address)
+        existing.onboarding_completed = TEST_USER.get("onboarding_completed", existing.onboarding_completed)
+        db.commit()
+        print(f"   [UPDATED] User '{existing.email}' (profile backfilled)")
         return existing
 
     user = User(
