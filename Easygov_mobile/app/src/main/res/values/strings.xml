@@ -1,3 +1,163 @@
 <resources>
-    <string name="app_name">Easygov</string>
+    <string name="app_name">EasyGov</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">Dashboard</string>
+    <string name="nav_chat">AI Assistant</string>
+    <string name="nav_documents">Documents</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Dashboard -->
+    <string name="dash_brand">EasyGov Nepal</string>
+    <string name="dash_subtitle">Recommended services and next steps for your profile</string>
+    <string name="dash_priority_count">2 Priority</string>
+    <string name="dash_service_count">4 Services</string>
+    <string name="dash_next_step_label">RECOMMENDED NEXT STEP</string>
+    <string name="dash_next_step_placeholder">E-Passport Apply</string>
+    <string name="dash_next_step_tap">Tap to view requirements and next steps</string>
+    <string name="dash_for_you">For You</string>
+    <string name="dash_all_services">All Services</string>
+    <string name="dash_welcome">Welcome, %1$s — Personalized services &amp; guides</string>
+    <string name="dash_conn_error">Connection Error</string>
+    <string name="dash_conn_error_msg">Check your internet and try again.</string>
+    <string name="retry">Retry</string>
+
+    <!-- Service detail -->
+    <string name="detail_title_placeholder">Service Title</string>
+    <string name="detail_category_placeholder">Category</string>
+    <string name="detail_overview">Overview</string>
+    <string name="detail_overview_placeholder">Detailed information about this service will be populated here. This includes requirements, fees, and step-by-step instructions.</string>
+    <string name="detail_official_guide">Official Guide</string>
+    <string name="detail_prereq_required">Prerequisite Required</string>
+    <string name="detail_prereq_msg">This service becomes available after completing its required documents.</string>
+    <string name="detail_view_info">View Information Anyway</string>
+    <string name="detail_readonly">Read-only preview</string>
+    <string name="detail_readonly_msg">You are viewing this service for information only. Complete its prerequisites to unlock applications and progress tracking.</string>
+    <string name="detail_next_steps">Next Steps</string>
+    <string name="detail_next_steps_msg">Prepare documents, confirm fees, and ask the assistant for service-specific requirements before visiting an office.</string>
+    <string name="apply_now">Apply Now</string>
+    <string name="view_my_application">View My Application</string>
+
+    <!-- Application progress -->
+    <string name="app_progress_title">Application Progress</string>
+    <string name="app_progress_subtitle">Track where you are in the application process</string>
+    <string name="app_progress_subtitle_2">Track your progress step by step</string>
+    <string name="status_in_progress">IN PROGRESS</string>
+    <string name="status_completed">COMPLETED</string>
+    <string name="status_not_started">NOT STARTED</string>
+    <string name="overall_progress">Overall Progress</string>
+    <string name="app_progress_hint">Your current step is highlighted below — tick it when done.</string>
+    <string name="app_completed">Application Completed</string>
+    <string name="app_completed_msg">Congratulations! You have completed every step. Keep your confirmation safe and follow any further instructions from the responsible office.</string>
+    <string name="app_done_hint">Every step is done — this application is complete.</string>
+    <string name="checklist">Checklist</string>
+    <string name="checklist_msg">Mark each step as you complete it to track your progress.</string>
+    <string name="app_load_error">Could not load this application. Please try again.</string>
+    <string name="app_not_found">Application not found.</string>
+    <string name="sign_in_required">Please sign in to view your application.</string>
+    <string name="step_label">Step %1$d - %2$s</string>
+
+    <!-- Chat -->
+    <string name="chat_title">AI Assistant</string>
+    <string name="chat_subtitle">Ask about services</string>
+    <string name="new_chat">New Chat</string>
+    <string name="history">History</string>
+    <string name="chat_ready">Ready for your question.</string>
+    <string name="ask_question">Ask a question</string>
+    <string name="send">Send</string>
+    <string name="chat_history">Chat History</string>
+    <string name="no_history">No history found</string>
+
+    <!-- Login / Register -->
+    <string name="profile_title">Profile</string>
+    <string name="login_subtitle">Access saved services and personalized recommendations</string>
+    <string name="sign_in">Sign in</string>
+    <string name="login_continue_msg">Continue with your EasyGov account</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="signing_in">Signing in...</string>
+    <string name="no_account_signup">Don\'t have an account? Sign up</string>
+    <string name="account_preview">Account Preview</string>
+    <string name="account_preview_msg">Saved applications, service history, and recommendation tuning will appear here after sign in.</string>
+    <string name="join_easygov">Join EasyGov</string>
+    <string name="register_subtitle">Create an account for personalized government services</string>
+    <string name="full_name">Full Name</string>
+    <string name="phone_optional">Phone (Optional)</string>
+    <string name="create_account">Create Account</string>
+    <string name="creating_account">Creating account...</string>
+    <string name="have_account_signin">Already have an account? Sign in</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">Complete Your Profile</string>
+    <string name="onboarding_subtitle">Tell us about yourself so we can personalize government services and next steps</string>
+    <string name="about_you">About You</string>
+    <string name="your_age">Your age</string>
+    <string name="docs_you_have">Documents You Already Have</string>
+    <string name="docs_you_have_msg">Select the documents you own so we don\'t recommend them again</string>
+    <string name="doc_citizenship">Citizenship Certificate</string>
+    <string name="doc_nid">National ID (NID)</string>
+    <string name="doc_passport">Passport</string>
+    <string name="doc_driving">Driving License</string>
+    <string name="action_continue">Continue</string>
+    <string name="saving">Saving...</string>
+
+    <!-- Profile -->
+    <string name="profile_avatar">Profile avatar</string>
+    <string name="profile_name_placeholder">Full Name</string>
+    <string name="profile_email_placeholder">user@example.com</string>
+    <string name="personal_info">Personal Information</string>
+    <string name="citizenship_no">Citizenship No.</string>
+    <string name="phone">Phone</string>
+    <string name="province">Province</string>
+    <string name="date_of_birth">Date of Birth</string>
+    <string name="age">Age</string>
+    <string name="address">Address</string>
+    <string name="my_applications">My Applications &amp; Progress</string>
+    <string name="no_applications">You haven\'t started any applications yet. Browse the dashboard to apply for a service.</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="profile_load_error">Could not load your profile. Please try again.</string>
+    <string name="sign_in_for_profile">Please sign in to view your profile.</string>
+    <string name="server_error">Server Error: %1$s</string>
+    <string name="network_failure">Network Failure: %1$s</string>
+    <string name="language">Language</string>
+
+    <!-- Language selector -->
+    <string name="lang_en">English</string>
+    <string name="lang_ne">नेपाली</string>
+
+    <!-- Item cards -->
+    <string name="service_icon">Service Icon</string>
+    <string name="service_name_placeholder">Service Name</string>
+
+    <!-- Documents vault -->
+    <string name="doc_title">My Documents</string>
+    <string name="doc_subtitle">Upload and access your document images from anywhere</string>
+    <string name="doc_upload">Upload Document</string>
+    <string name="doc_uploading">Uploading...</string>
+    <string name="doc_empty">No documents yet. Tap "Upload Document" to add your first one.</string>
+    <string name="doc_load_fail">Could not load your documents. Please try again.</string>
+    <string name="doc_upload_fail">Upload failed. Please check the file and try again.</string>
+    <string name="doc_sign_in">Please sign in to view your documents.</string>
+    <string name="doc_pick_label">Choose a label</string>
+    <string name="doc_label_hint">e.g. Citizenship Certificate</string>
+    <string name="doc_tags_hint">Tags (comma separated) — e.g. identity, passport</string>
+    <string name="doc_optional_desc">Description (optional)</string>
+    <string name="doc_save">Save</string>
+    <string name="doc_cancel">Cancel</string>
+    <string name="doc_upload_btn">Upload</string>
+    <string name="doc_details">Document Details</string>
+    <string name="doc_filename">File</string>
+    <string name="doc_size">Size</string>
+    <string name="doc_uploaded_on">Uploaded on %1$s</string>
+    <string name="doc_view">View</string>
+    <string name="doc_delete">Delete</string>
+    <string name="doc_delete_confirm">Delete document?</string>
+    <string name="doc_delete_msg">"%1$s" will be permanently removed. This cannot be undone.</string>
+    <string name="doc_deleted">Document deleted</string>
+    <string name="doc_downloading">Downloading...</string>
+    <string name="doc_no_viewer">No app can open this file type.</string>
+    <string name="doc_retry">Retry</string>
+    <string name="doc_tags_label">Tags</string>
+    <string name="doc_unknown_name">Document</string>
 </resources>

@@ -54,13 +54,13 @@ class LoginFragment : Fragment() {
             
             if (email.isNotEmpty() && password.isNotEmpty()) {
                 btnLogin.isEnabled = false
-                btnLogin.text = "Signing in..."
+                btnLogin.text = getString(R.string.signing_in)
                 
                 val loginRequest = LoginRequest(email = email, password = password)
                 RetrofitClient.apiService.loginUser(loginRequest).enqueue(object : Callback<TokenResponse> {
                     override fun onResponse(call: Call<TokenResponse>, response: Response<TokenResponse>) {
                         btnLogin.isEnabled = true
-                        btnLogin.text = "Login"
+                        btnLogin.text = getString(R.string.login)
 
                         if (response.isSuccessful && response.body() != null) {
                             val tokenResponse = response.body()!!
@@ -93,7 +93,7 @@ class LoginFragment : Fragment() {
 
                     override fun onFailure(call: Call<TokenResponse>, t: Throwable) {
                         btnLogin.isEnabled = true
-                        btnLogin.text = "Login"
+                        btnLogin.text = getString(R.string.login)
                         Toast.makeText(
                             context,
                             "Network Error: ${t.localizedMessage}",

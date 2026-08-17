@@ -8,12 +8,20 @@ import com.example.easygov.model.DashboardResponse
 import com.example.easygov.model.OnboardingRequest
 import com.example.easygov.model.OnboardingResponse
 import com.example.easygov.model.ServiceDetailResponse
+import com.example.easygov.model.UserDocument
 import com.example.easygov.model.UserOut
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Call
 import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.Header
+import retrofit2.http.Multipart
+import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.Part
 import retrofit2.http.Path
 
 /**
@@ -130,6 +138,46 @@ interface ApiService {
     fun registerUser(
         @Body request: com.example.easygov.model.RegisterRequest
     ): Call<com.example.easygov.model.TokenResponse>
+
+    /**
+     * Uploads a document (image/PDF) into the user's document vault.
+     * The label and tags are sent as multipart form fields.
+     */
+    @Multipart
+    @POST("/api/v1/documents")
+    fun uploadDocument(
+        @Header("Authorization") authToken: String,
+        @Part("label") label: RequestBody,
+        @Part("tags") tags: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part file: MultipartBody.Part
+    ): Call<UserDocument>
+
+    /**
+     * Returns all documents in the user's vault, newest first.
+     */
+    @GET("/api/v1/documents")
+    fun getDocuments(
+        @Header("Authorization") authToken: String
+    ): Call<List<UserDocument>>
+
+    /**
+     * Deletes a document from the user's vault.
+     */
+    @DELETE("/api/v1/documents/{documentId}")
+    fun deleteDocument(
+        @Header("Authorization") authToken: String,
+        @Path("documentId") documentId: Int
+    ): Call<ResponseBody>
+
+    /**
+     * Downloads the raw file bytes for a document.
+     */
+    @GET("/api/v1/documents/{documentId}/download")
+    fun downloadDocument(
+        @Header("Authorization") authToken: String,
+        @Path("documentId") documentId: Int
+    ): Call<ResponseBody>
 }
 
 

@@ -101,17 +101,17 @@ class DashboardFragment : Fragment() {
                     recommendedAdapter.submitList(data.recommendations)
 
                     val tvDashboardTitle = view?.findViewById<TextView>(R.id.tvDashboardTitle)
-                    tvDashboardTitle?.text = "Welcome, ${data.userName} • Personalized services & guides"
+                    tvDashboardTitle?.text = getString(R.string.dash_welcome, data.userName)
 
                     bindNextStepBanner(data.recommendedNextStep)
                 } else {
-                    showError("Server Error: ${response.code()}")
+                    showError(getString(R.string.server_error, response.code().toString()))
                 }
             }
 
             override fun onFailure(call: Call<DashboardResponse>, t: Throwable) {
                 swipeRefresh.isRefreshing = false
-                showError("Network Failure: ${t.localizedMessage}")
+                showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
             }
         })
     }

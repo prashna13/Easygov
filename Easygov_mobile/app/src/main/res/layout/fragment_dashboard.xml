@@ -36,7 +36,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="EasyGov Nepal"
+                        android:text="@string/dash_brand"
                         android:textAppearance="?attr/textAppearanceHeadlineLarge"
                         android:textColor="@color/onPrimary_light" />
 
@@ -45,7 +45,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="Recommended services and next steps for your profile"
+                        android:text="@string/dash_subtitle"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
                         android:textColor="@color/primaryContainer_light" />
 
@@ -64,7 +64,7 @@
                             android:gravity="center"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="10dp"
-                            android:text="2 Priority"
+                            android:text="@string/dash_priority_count"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="@color/success_light" />
 
@@ -77,7 +77,7 @@
                             android:gravity="center"
                             android:paddingHorizontal="12dp"
                             android:paddingVertical="10dp"
-                            android:text="4 Services"
+                            android:text="@string/dash_service_count"
                             android:textAppearance="?attr/textAppearanceLabelLarge"
                             android:textColor="@color/success_light" />
                     </LinearLayout>
@@ -101,7 +101,7 @@
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="RECOMMENDED NEXT STEP"
+                        android:text="@string/dash_next_step_label"
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textColor="@color/success_light" />
 
@@ -110,7 +110,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"
-                        android:text="E-Passport Apply"
+                        android:text="@string/dash_next_step_placeholder"
                         android:textAppearance="?attr/textAppearanceTitleMedium"
                         android:textColor="@color/primary_light" />
 
@@ -118,7 +118,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Tap to view requirements and next steps"
+                        android:text="@string/dash_next_step_tap"
                         android:textAppearance="?attr/textAppearanceBodySmall"
                         android:textColor="?attr/colorOnSurfaceVariant" />
                 </LinearLayout>
@@ -129,7 +129,7 @@
                     android:layout_marginStart="20dp"
                     android:layout_marginTop="22dp"
                     android:layout_marginEnd="20dp"
-                    android:text="For You"
+                    android:text="@string/dash_for_you"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurface" />
 
@@ -148,7 +148,7 @@
                     android:layout_marginStart="20dp"
                     android:layout_marginTop="20dp"
                     android:layout_marginEnd="20dp"
-                    android:text="All Services"
+                    android:text="@string/dash_all_services"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurface" />
 
@@ -184,7 +184,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Connection Error"
+                android:text="@string/dash_conn_error"
                 android:textAppearance="?attr/textAppearanceTitleLarge" />
 
             <TextView
@@ -192,7 +192,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Check your internet and try again."
+                android:text="@string/dash_conn_error_msg"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceBodyMedium" />
 
@@ -201,7 +201,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Retry" />
+                android:text="@string/retry" />
         </LinearLayout>
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

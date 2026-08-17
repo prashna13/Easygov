@@ -86,6 +86,7 @@ class User(Base):
         cascade="all, delete-orphan",
         order_by="ChatMessage.created_at"
     )
+    documents = relationship("Document", back_populates="user", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<User id={self.id} email='{self.email}' name='{self.full_name}'>"
@@ -126,10 +127,14 @@ class GovService(Base):
     Fields:
         id              : Auto-increment primary key
         title           : Short display name (e.g. "E-Passport Apply")
-        category        : Service category (e.g. "Identity", "Transport", "Business")
+        title_ne        : Nepali display name (e.g. "विद्युतीय राहदानी")
+        category        : Service category (e.g. "Identity", "Transport")
+        category_ne     : Nepali service category
         description     : Human-readable explanation of the service
+        description_ne  : Nepali explanation of the service
         guidance        : Full step-by-step guide (overview, prerequisites, documents,
                           procedure, fees, processing time, official resources)
+        guidance_ne     : Nepali version of the full guide
         department      : Responsible government department/ministry
         estimated_days  : Average processing time in working days
         fee_npr         : Official government fee in Nepali Rupees (0 = free)
@@ -140,9 +145,13 @@ class GovService(Base):
 
     id             = Column(Integer, primary_key=True, index=True, autoincrement=True)
     title          = Column(String(200), nullable=False)
+    title_ne       = Column(String(200), nullable=True)
     category       = Column(String(100), nullable=False, index=True)
+    category_ne    = Column(String(100), nullable=True)
     description    = Column(Text, nullable=True)
+    description_ne = Column(Text, nullable=True)
     guidance       = Column(Text, nullable=True)
+    guidance_ne    = Column(Text, nullable=True)
     department     = Column(String(200), nullable=True)
     estimated_days = Column(Integer, nullable=True)
     fee_npr        = Column(Integer, default=0, nullable=False)
@@ -280,7 +289,9 @@ class Progress(Base):
         user_service_id  : FK to user_services.id
         step_number      : Ordered position of this step (1-indexed)
         step_name        : Short label (e.g. "Biometric Enrollment")
+        step_name_ne     : Nepali short label
         step_description : Detailed instructions for the user
+        step_description_ne : Nepali detailed instructions
         status           : Current state of this step (see StepStatus enum)
         completed_at     : When this step was marked COMPLETED or SKIPPED
         notes            : User notes or system messages for this step
@@ -291,7 +302,9 @@ class Progress(Base):
     user_service_id = Column(Integer, ForeignKey("user_services.id"), nullable=False, index=True)
     step_number     = Column(Integer, nullable=False)
     step_name       = Column(String(200), nullable=False)
+    step_name_ne    = Column(String(200), nullable=True)
     step_description = Column(Text, nullable=True)
+    step_description_ne = Column(Text, nullable=True)
     status          = Column(
         SAEnum(StepStatus, name="step_status_enum"),
         default=StepStatus.PENDING,
@@ -313,3 +326,43 @@ class Progress(Base):
             f"<Progress user_service={self.user_service_id} "
             f"step={self.step_number} '{self.step_name}' status='{self.status}'>"
         )
+
+
+# ── TABLE 6: documents ─────────────────────────────────────────────────────────
+
+class Document(Base):
+    """
+    A file uploaded by a user (e.g. scanned citizenship, birth certificate,
+    passport photo) stored in the app so it can be accessed from anywhere.
+
+    Fields:
+        id           : Auto-increment primary key
+        user_id      : FK to users.id
+        label        : Short user-friendly name the user gives the document
+        tags         : Comma-separated labels/categories for searching/filtering
+        description  : Optional free-text note
+        filename     : Original filename (display only)
+        stored_name  : Unique filename on disk (uuid + extension)
+        mime_type    : Detected content type (image/jpeg, application/pdf, ...)
+        size_bytes   : File size in bytes
+        created_at   : When the document was uploaded
+        updated_at   : Last metadata update
+    """
+    __tablename__ = "documents"
+
+    id          = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    user_id     = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    label       = Column(String(200), nullable=False)
+    tags        = Column(String(500), nullable=True)
+    description = Column(Text, nullable=True)
+    filename    = Column(String(255), nullable=False)
+    stored_name = Column(String(255), nullable=False)
+    mime_type   = Column(String(100), nullable=False)
+    size_bytes  = Column(Integer, default=0, nullable=False)
+    created_at  = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at  = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+    user = relationship("User", back_populates="documents")
+
+    def __repr__(self):
+        return f"<Document id={self.id} user={self.user_id} label='{self.label}'>"

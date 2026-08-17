@@ -26,18 +26,18 @@ class DashboardAdapter(
     override fun onBindViewHolder(holder: ServiceViewHolder, position: Int) {
         val service = getItem(position)
         holder.name.text = service.title
-        
-        // Map service titles to appropriate icons (Fallback to help icon)
-        val iconRes = when {
-            service.title.contains("Passport", ignoreCase = true) -> android.R.drawable.ic_menu_agenda
-            service.title.contains("License", ignoreCase = true) -> android.R.drawable.ic_menu_directions
-            service.title.contains("Tax", ignoreCase = true) -> android.R.drawable.ic_menu_save
-            service.title.contains("PAN", ignoreCase = true) -> android.R.drawable.ic_menu_manage
-            service.title.contains("Citizenship", ignoreCase = true) -> android.R.drawable.ic_menu_info_details
-            service.title.contains("NID", ignoreCase = true) -> android.R.drawable.ic_menu_myplaces
+
+        // Map service ids to appropriate icons (Fallback to help icon).
+        // Uses the stable service id instead of the title so icons keep working
+        // when the display language is switched to Nepali.
+        val iconRes = when (service.id) {
+            1 -> android.R.drawable.ic_menu_info_details      // Citizenship
+            2 -> android.R.drawable.ic_menu_myplaces          // NID
+            3 -> android.R.drawable.ic_menu_agenda            // E-Passport
+            7 -> android.R.drawable.ic_menu_directions        // Driving License
             else -> android.R.drawable.ic_menu_help
         }
-        
+
         holder.icon.setImageResource(iconRes)
         holder.itemView.setOnClickListener { onItemClick(service) }
     }

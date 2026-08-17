@@ -180,7 +180,7 @@ class ServiceDetailFragment : Fragment() {
         detail.application?.let { app ->
             if (app.status != "COMPLETED") {
                 applicationId = app.applicationId
-                btnApplyNow.text = "View My Application"
+                btnApplyNow.text = getString(R.string.view_my_application)
             }
         }
 

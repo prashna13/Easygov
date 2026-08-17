@@ -66,7 +66,7 @@ class ApplicationProgressFragment : Fragment() {
         scrollContent = view.findViewById(R.id.scrollContent)
 
         tvAppTitle.text = serviceTitle
-        tvAppSubtitle.text = "Track your progress step by step"
+        tvAppSubtitle.text = getString(R.string.app_progress_subtitle_2)
 
         stepAdapter = ProgressStepAdapter { stepNumber -> completeStep(stepNumber) }
         rvSteps.layoutManager = LinearLayoutManager(requireContext())
@@ -83,12 +83,12 @@ class ApplicationProgressFragment : Fragment() {
 
     private fun loadApplication() {
         if (applicationId <= 0) {
-            showError("Application not found.")
+            showError(getString(R.string.app_not_found))
             return
         }
         val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
         if (authToken == null) {
-            showError("Please sign in to view your application.")
+            showError(getString(R.string.sign_in_required))
             return
         }
 
@@ -101,12 +101,12 @@ class ApplicationProgressFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         bindApplication(response.body()!!)
                     } else {
-                        showError("Server Error: ${response.code()}")
+                        showError(getString(R.string.server_error, response.code().toString()))
                     }
                 }
 
                 override fun onFailure(call: Call<ApplicationProgress>, t: Throwable) {
-                    showError("Network Failure: ${t.localizedMessage}")
+                    showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
                 }
             })
     }
@@ -126,13 +126,13 @@ class ApplicationProgressFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         bindApplication(response.body()!!)
                     } else {
-                        showError("Server Error: ${response.code()}")
+                        showError(getString(R.string.server_error, response.code().toString()))
                     }
                 }
 
                 override fun onFailure(call: Call<ApplicationProgress>, t: Throwable) {
                     isUpdating = false
-                    showError("Network Failure: ${t.localizedMessage}")
+                    showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
                 }
             })
     }
@@ -142,18 +142,27 @@ class ApplicationProgressFragment : Fragment() {
         scrollContent.visibility = View.VISIBLE
 
         val isCompleted = app.status == "COMPLETED"
-        tvAppStatus.text = app.status.replace("_", " ")
+        tvAppStatus.text = localizedStatus(app.status)
         tvProgressPercent.text = "${app.progressPercent}%"
         progressBar.progress = app.progressPercent
 
         if (isCompleted) {
-            tvNextStepHint.text = "Every step is done — this application is complete."
+            tvNextStepHint.text = getString(R.string.app_done_hint)
             completedPanel.visibility = View.VISIBLE
         } else {
             completedPanel.visibility = View.GONE
         }
 
         stepAdapter.submitList(app.steps)
+    }
+
+    private fun localizedStatus(status: String): String {
+        return when (status) {
+            "COMPLETED" -> getString(R.string.status_completed)
+            "IN_PROGRESS" -> getString(R.string.status_in_progress)
+            "NOT_STARTED" -> getString(R.string.status_not_started)
+            else -> status.replace("_", " ")
+        }
     }
 
     private fun showError(message: String) {

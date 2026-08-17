@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.UserOut
 import com.example.easygov.network.RetrofitClient
+import com.google.android.material.button.MaterialButtonToggleGroup
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -63,14 +64,33 @@ class ProfileFragment : Fragment() {
             loadProfile()
         }
 
+        setupLanguageSelector(view)
+
         loadProfile()
         loadApplications()
+    }
+
+    /**
+     * Wires the English/नेपाली toggle. Applies the chosen locale app-wide via
+     * AppCompatDelegate (which recreates the activity) and persists the choice.
+     */
+    private fun setupLanguageSelector(view: View) {
+        val localeManager = LocaleManager.getInstance(requireContext())
+        val langGroup = view.findViewById<MaterialButtonToggleGroup>(R.id.langGroup)
+        langGroup.check(if (localeManager.getLanguage() == "ne") R.id.btnLangNe else R.id.btnLangEn)
+        langGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked) return@addOnButtonCheckedListener
+            val lang = if (checkedId == R.id.btnLangNe) "ne" else "en"
+            if (lang != localeManager.getLanguage()) {
+                localeManager.setLanguage(lang)
+            }
+        }
     }
 
     private fun loadProfile() {
         val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
         if (authToken == null) {
-            showError("Please sign in to view your profile.")
+            showError(getString(R.string.sign_in_for_profile))
             return
         }
 
@@ -80,12 +100,12 @@ class ProfileFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         bindProfile(response.body()!!)
                     } else {
-                        showError("Server Error: ${response.code()}")
+                        showError(getString(R.string.server_error, response.code().toString()))
                     }
                 }
 
                 override fun onFailure(call: Call<UserOut>, t: Throwable) {
-                    showError("Network Failure: ${t.localizedMessage}")
+                    showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
                 }
             })
     }

@@ -35,7 +35,7 @@
                     android:id="@+id/tvAppTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Application Progress"
+                    android:text="@string/app_progress_title"
                     android:textAppearance="?attr/textAppearanceHeadlineLarge"
                     android:textColor="@color/onPrimary_light" />
 
@@ -44,7 +44,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Track where you are in the application process"
+                    android:text="@string/app_progress_subtitle"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="@color/primaryContainer_light" />
 
@@ -61,7 +61,7 @@
                         android:id="@+id/tvAppStatus"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="IN PROGRESS"
+                        android:text="@string/status_in_progress"
                         android:textAppearance="?attr/textAppearanceLabelLarge"
                         android:textColor="?attr/colorOnSecondaryContainer" />
                 </LinearLayout>
@@ -86,7 +86,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="Overall Progress"
+                        android:text="@string/overall_progress"
                         android:textAppearance="?attr/textAppearanceTitleLarge"
                         android:textColor="?attr/colorOnSurface" />
 
@@ -114,7 +114,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Your current step is highlighted below — tick it when done."
+                    android:text="@string/app_progress_hint"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
@@ -134,7 +134,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Application Completed"
+                    android:text="@string/app_completed"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="@color/success_light" />
 
@@ -142,7 +142,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Congratulations! You have completed every step. Keep your confirmation safe and follow any further instructions from the responsible office."
+                    android:text="@string/app_completed_msg"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
             </LinearLayout>
@@ -160,7 +160,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Checklist"
+                    android:text="@string/checklist"
                     android:textAppearance="?attr/textAppearanceTitleLarge"
                     android:textColor="?attr/colorOnSurface" />
 
@@ -168,7 +168,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Mark each step as you complete it to track your progress."
+                    android:text="@string/checklist_msg"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -200,7 +200,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="Could not load this application. Please try again."
+            android:text="@string/app_load_error"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -209,6 +209,6 @@
             android:layout_width="wrap_content"
             android:layout_height="52dp"
             android:layout_marginTop="18dp"
-            android:text="Retry" />
+            android:text="@string/retry" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

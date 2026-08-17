@@ -17,7 +17,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chat History"
+        android:text="@string/chat_history"
         android:textAppearance="?attr/textAppearanceTitleLarge"
         android:layout_marginBottom="16dp" />
 
@@ -32,7 +32,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center"
-        android:text="No history found"
+        android:text="@string/no_history"
         android:visibility="gone"
         android:padding="32dp" />
 

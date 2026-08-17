@@ -1,10 +1,13 @@
 import sys
 import os
+import uuid
+from pathlib import Path
 
 # Ensure project root is in sys.path when script is executed directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, Query, UploadFile, File, Form
+from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy import func
@@ -13,6 +16,7 @@ from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
+from langdetect import detect, LangDetectException
 
 from app.database import get_db
 from app.models import (
@@ -22,6 +26,7 @@ from app.models import (
     Progress as DBProgress,
     PrerequisiteRule,
     ChatMessage,
+    Document as DBDocument,
     ServiceStatus,
     StepStatus,
 )
@@ -29,7 +34,7 @@ from app.schemas import (
     UserRegister, UserLogin, UserOut, TokenResponse,
     DashboardOut, GovServiceOut, ChatHistoryOut,
     OnboardingRequest, OnboardingResponse, ServiceDetailOut,
-    ApplicationOut, ProgressStepOut,
+    ApplicationOut, ProgressStepOut, DocumentOut, DocumentUpdate,
 )
 from app.auth_utils import (
     hash_password, verify_password, create_access_token,
@@ -66,6 +71,18 @@ llm = ChatOpenAI(
 # 4. Retrieval settings (RAG)
 retriever_k = int(os.getenv("RETRIEVER_K", "6"))
 
+# 5. User document storage
+DOC_STORAGE_DIR = Path("db_storage/documents")
+DOC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+ALLOWED_DOC_MIME = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/heic": ".heic",
+    "application/pdf": ".pdf",
+}
+MAX_DOC_BYTES = 10 * 1024 * 1024  # 10 MB per file
+
 
 # ── ONBOARDING / DOCUMENT DEPENDENCY PROFILE ────────────────────────────────
 # Keys sent by the mobile app map to gov_services.title values.
@@ -89,108 +106,26 @@ NEXT_STEP_CHAIN = [
 # When every document in the chain is complete, fall back to this service.
 NEXT_STEP_FALLBACK = "Driving License"
 
-# Step-level progress checklist created when a user starts an application
-# for a service. Keyed by gov_services.title; each entry is a list of
-# (step_name, step_description) pairs shown in the app's progress tracker.
-STEP_TEMPLATES = {
-    "Citizenship Certificate Copy": [
-        ("Gather Documents", (
-            "Collect the Ward Office recommendation letter, both parents' citizenship "
-            "certificates, birth registration, school/character certificate, parents' "
-            "marriage certificate, two passport-size photos and an NPR 10 revenue stamp."
-        )),
-        ("Obtain Ward Office Recommendation", (
-            "Visit your local Ward Office with the original documents. The ward certifies "
-            "your identity and permanent residence before you file at the DAO."
-        )),
-        ("Submit Application at DAO", (
-            "Fill the Schedule-1 application form, attach the revenue stamp, and submit it at "
-            "the DAO's citizenship section together with your adult witness."
-        )),
-        ("Verification & Collection", (
-            "Attend verification if a spot inquiry (Sarjaamin) is called, then collect your "
-            "certificate — often the same day or within a few working days."
-        )),
-    ],
-    "NID Registration": [
-        ("Pre-Enroll Online", (
-            "Log in or create an account at donidcr.gov.np and verify your mobile number with "
-            "the OTP. Start a 'New Enrollment' and fill in details that match your citizenship "
-            "certificate exactly."
-        )),
-        ("Upload Documents & Book Appointment", (
-            "Upload your citizenship certificate (and marriage certificate if applicable), "
-            "select your enrollment centre and appointment date, then print your token slip."
-        )),
-        ("Biometric Enrollment", (
-            "Attend in person — face and ears clearly visible. Complete photo, ten-finger "
-            "fingerprints, iris scan, and digital signature; review the report on the spot."
-        )),
-        ("Receive NIN Confirmation", (
-            "Get your interim National Identity Number confirmation, usable immediately while "
-            "the physical card is being printed."
-        )),
-        ("Collect NID Card", (
-            "Collect your physical NID card from the enrollment centre when notified — this can "
-            "take a few weeks to a few months depending on the national backlog."
-        )),
-    ],
-    "E-Passport Apply": [
-        ("Pre-Enrollment Online", (
-            "Complete the online pre-enrollment form at emrtds.nepalpassport.gov.np with your "
-            "citizenship and NID details."
-        )),
-        ("Select Office & Book Appointment", (
-            "Choose the Department of Passports HQ, a District Administration Office, or an "
-            "embassy/consulate, then pick an appointment date and time slot."
-        )),
-        ("Pay Fee & Print Slip", (
-            "Pay the applicable fee (e.g. NPR 5,000 for a regular 34-page passport) and print "
-            "your pre-enrollment slip."
-        )),
-        ("Attend Biometric Appointment", (
-            "Appear in person with all original documents. Live photo, fingerprints and document "
-            "verification are captured on-site."
-        )),
-        ("Collect Passport", (
-            "Collect your passport from the office where you applied — DAOs typically take 7–15 "
-            "working days, embassies 4–8 weeks."
-        )),
-    ],
-    "Driving License": [
-        ("Register on DoTM Portal", (
-            "Log in at applydlnew.dotm.gov.np (or via Nagarik App) and complete your profile; "
-            "scan the QR code on your NID to auto-fill much of the form."
-        )),
-        ("Upload Documents & Pay Fee", (
-            "Upload citizenship, blood group certificate, eye test certificate (Category B and "
-            "above), medical certificate and photographs, then pay the government fee online."
-        )),
-        ("Book & Attend Verification", (
-            "Book an appointment at your chosen Transport Management Office and visit on the "
-            "date with original documents for verification and biometric enrollment."
-        )),
-        ("Pass Written Exam", (
-            "Sit the written knowledge test at the office (or a computer-based test in some "
-            "regions)."
-        )),
-        ("Pass Practical Trial", (
-            "If you pass the written exam you are scheduled for the practical trial test — you "
-            "need a minimum of ~70/100 points."
-        )),
-        ("Collect License", (
-            "Pay the final issuance fee, receive a temporary driving slip while the smart card "
-            "prints, then collect your license when notified (typically 15–30 working days)."
-        )),
-    ],
-}
+# Bilingual step templates: English from step_templates.py, Nepali from the
+# auto-generated nepali_content.py. Used when starting an application.
+from app.step_templates import STEP_TEMPLATES as _STEP_TEMPLATES_EN  # noqa: E402
+from app.step_templates import DEFAULT_STEP_TEMPLATE as _DEFAULT_STEP_TEMPLATE_EN  # noqa: E402
 
-# Fallback when a service has no specific step template defined.
-DEFAULT_STEP_TEMPLATE = [
-    ("Submit Application", "Submit your application and supporting documents to the responsible office."),
-    ("Processing", "The responsible department reviews and processes your application."),
-    ("Collection", "Collect your certificate/card/license once processing is complete."),
-]
+try:
+    from app.nepali_content import STEP_TEMPLATES_NE, DEFAULT_STEP_TEMPLATE_NE  # noqa: E402
+except ImportError:
+    # nepali_content.py not generated yet — fall back to English only.
+    STEP_TEMPLATES_NE = {}
+    DEFAULT_STEP_TEMPLATE_NE = []
+
+
+def get_step_template(title: str) -> dict:
+    """Returns {'en': [...], 'ne': [...]} for a service title's progress steps."""
+    en = _STEP_TEMPLATES_EN.get(title, _DEFAULT_STEP_TEMPLATE_EN)
+    ne = STEP_TEMPLATES_NE.get(title, DEFAULT_STEP_TEMPLATE_NE)
+    if len(ne) < len(en):
+        ne = ne + [("", "")] * (len(en) - len(ne))
+    return {"en": en, "ne": ne[: len(en)]}
 
 
 def get_completed_service_ids(db: Session, user: User) -> set:
@@ -243,15 +178,16 @@ def get_prerequisite_status(db: Session, service, completed_ids: set):
     return (len(missing) == 0), missing
 
 
-def build_service_out(service, completed_ids: set, db: Session) -> GovServiceOut:
+def build_service_out(service, completed_ids: set, db: Session, lang: str = "en") -> GovServiceOut:
     """Build a GovServiceOut with prerequisite status filled in."""
     met, missing = get_prerequisite_status(db, service, completed_ids)
+    ne = lang == "ne"
     return GovServiceOut(
         id=service.id,
-        title=service.title,
-        category=service.category,
-        description=service.description,
-        guidance=service.guidance,
+        title=service.title_ne if ne and service.title_ne else service.title,
+        category=service.category_ne if ne and service.category_ne else service.category,
+        description=service.description_ne if ne and service.description_ne else service.description,
+        guidance=service.guidance_ne if ne and service.guidance_ne else service.guidance,
         department=service.department,
         estimated_days=service.estimated_days,
         fee_npr=service.fee_npr,
@@ -260,7 +196,7 @@ def build_service_out(service, completed_ids: set, db: Session) -> GovServiceOut
     )
 
 
-def build_application_out(db: Session, us: DBUserService) -> ApplicationOut:
+def build_application_out(db: Session, us: DBUserService, lang: str = "en") -> ApplicationOut:
     """Build an ApplicationOut for a UserService record, computing progress %."""
     steps = (
         db.query(DBProgress)
@@ -271,15 +207,24 @@ def build_application_out(db: Session, us: DBUserService) -> ApplicationOut:
     total = len(steps)
     done = sum(1 for s in steps if s.status == StepStatus.COMPLETED)
     percent = round((done / total) * 100) if total else 0
+    localized = []
+    for s in steps:
+        step_out = ProgressStepOut.model_validate(s)
+        if lang == "ne":
+            step_out.step_name = s.step_name_ne or s.step_name
+            step_out.step_description = s.step_description_ne or s.step_description
+        localized.append(step_out)
     return ApplicationOut(
         application_id=us.id,
         service_id=us.service_id,
-        service_title=us.service.title,
+        service_title=(
+            us.service.title_ne if lang == "ne" and us.service.title_ne else us.service.title
+        ),
         status=us.status.value,
         progress_percent=percent,
         started_at=us.started_at,
         completed_at=us.completed_at,
-        steps=[ProgressStepOut.model_validate(s) for s in steps],
+        steps=localized,
     )
 
 
@@ -398,6 +343,156 @@ def get_chat_history(
     )
 
 
+# ── USER DOCUMENT VAULT ───────────────────────────────────────────────────────
+
+def _document_out(doc: DBDocument) -> DocumentOut:
+    """Convert a Document row to the API schema (tags string → list)."""
+    tags = [t.strip() for t in (doc.tags or "").split(",") if t.strip()]
+    return DocumentOut(
+        id=doc.id,
+        label=doc.label,
+        tags=tags,
+        description=doc.description,
+        filename=doc.filename,
+        mime_type=doc.mime_type,
+        size_bytes=doc.size_bytes,
+        created_at=doc.created_at,
+    )
+
+
+def _get_owned_document(db: Session, current_user: User, document_id: int) -> DBDocument:
+    doc = db.query(DBDocument).filter(DBDocument.id == document_id).first()
+    if doc is None or doc.user_id != current_user.id:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return doc
+
+
+@app.post("/api/v1/documents", response_model=DocumentOut, status_code=status.HTTP_201_CREATED)
+async def upload_document(
+    label: str = Form(...),
+    file: UploadFile = File(...),
+    tags: Optional[str] = Form(""),
+    description: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Upload a document image/PDF into the authenticated user's vault."""
+    label = (label or "").strip()
+    if not label:
+        raise HTTPException(status_code=422, detail="A label is required for the document.")
+    if len(label) > 200:
+        raise HTTPException(status_code=422, detail="Label is too long (max 200 characters).")
+
+    mime = file.content_type or ""
+    ext = ALLOWED_DOC_MIME.get(mime)
+    if not ext:
+        raise HTTPException(
+            status_code=415,
+            detail="Unsupported file type. Allowed: JPEG, PNG, WEBP, HEIC, PDF.",
+        )
+
+    content = await file.read()
+    if len(content) > MAX_DOC_BYTES:
+        raise HTTPException(status_code=413, detail="File is too large (max 10 MB).")
+    if len(content) == 0:
+        raise HTTPException(status_code=422, detail="Uploaded file is empty.")
+
+    safe_filename = os.path.basename(file.filename or "document") or "document"
+    stored_name = f"{uuid.uuid4().hex}{ext}"
+    dest = _user_doc_dir(current_user.id) / stored_name
+    dest.write_bytes(content)
+
+    doc = DBDocument(
+        user_id=current_user.id,
+        label=label,
+        tags=(tags or "").strip(),
+        description=(description or "").strip() or None,
+        filename=safe_filename,
+        stored_name=stored_name,
+        mime_type=mime,
+        size_bytes=len(content),
+    )
+    db.add(doc)
+    db.commit()
+    db.refresh(doc)
+    return _document_out(doc)
+
+
+@app.get("/api/v1/documents", response_model=List[DocumentOut])
+def list_documents(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the authenticated user's uploaded documents, newest first."""
+    docs = (
+        db.query(DBDocument)
+        .filter(DBDocument.user_id == current_user.id)
+        .order_by(DBDocument.created_at.desc())
+        .all()
+    )
+    return [_document_out(d) for d in docs]
+
+
+@app.patch("/api/v1/documents/{document_id}", response_model=DocumentOut)
+def update_document(
+    document_id: int,
+    payload: DocumentUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Update a document's label/tags/description."""
+    doc = _get_owned_document(db, current_user, document_id)
+    if payload.label is not None:
+        doc.label = payload.label.strip()
+    if payload.tags is not None:
+        doc.tags = payload.tags.strip()
+    if payload.description is not None:
+        doc.description = payload.description.strip() or None
+    db.commit()
+    db.refresh(doc)
+    return _document_out(doc)
+
+
+@app.get("/api/v1/documents/{document_id}/download")
+def download_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Stream the stored file back to the authenticated owner."""
+    doc = _get_owned_document(db, current_user, document_id)
+    file_path = DOC_STORAGE_DIR / str(current_user.id) / doc.stored_name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File missing on server")
+    return FileResponse(
+        path=str(file_path),
+        media_type=doc.mime_type,
+        filename=doc.filename,
+    )
+
+
+@app.delete("/api/v1/documents/{document_id}", status_code=status.HTTP_200_OK)
+def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Delete a document's metadata and its file from disk."""
+    doc = _get_owned_document(db, current_user, document_id)
+    file_path = DOC_STORAGE_DIR / str(current_user.id) / doc.stored_name
+    if file_path.exists():
+        file_path.unlink()
+    db.delete(doc)
+    db.commit()
+    return {"detail": "Document deleted"}
+
+
+def _user_doc_dir(user_id: int) -> Path:
+    d = DOC_STORAGE_DIR / str(user_id)
+    d.mkdir(parents=True, exist_ok=True)
+    return d
+
+
 # ── RAG CHATBOT ENDPOINT ──────────────────────────────────────────────────────
 
 @app.post("/ask")
@@ -426,6 +521,13 @@ async def ask_government_bot(
             db.commit()
             db.refresh(user_message)
 
+        # Detect query language (Nepali queries → Nepali answer, English → English)
+        try:
+            query_lang = detect(user_question)
+        except LangDetectException:
+            query_lang = "en"
+        answer_lang = "NEPALI" if query_lang == "ne" else "ENGLISH"
+
         # Use similarity_search() to get documents and metadata
         docs = vector_db.similarity_search(user_question, k=retriever_k)
 
@@ -443,15 +545,16 @@ async def ask_government_bot(
 
         strict_prompt = (
             "You are EasyGov Nepal, a professional government assistant.\n"
-            "Your task is to provide a structured, bulleted answer in ENGLISH based on the CONTEXT provided.\n"
+            f"Your task is to provide a structured, bulleted answer in {answer_lang} based on the CONTEXT provided.\n"
             "Follow these rules:\n"
-            "1. Translate any Nepali information from the context into clear English.\n"
+            "1. If the context is in a different language than the answer language, translate it into the answer language.\n"
             "2. Use bullet points and bold headers for readability.\n"
-            "3. If the context is missing specific details, state clearly: 'I couldn't find that specific info.'\n"
+            "3. If the context is missing specific details, state clearly: 'I couldn't find that specific info.' "
+            "(in the answer language)\n"
             "4. Do not guess or use external knowledge.\n\n"
             f"CONTEXT (might be in Nepali or English):\n{context}\n\n"
             f"QUESTION:\n{user_question}\n"
-            "ANSWER IN ENGLISH:"
+            f"ANSWER IN {answer_lang}:"
         )
 
         llm_result = llm.invoke(strict_prompt)
@@ -506,6 +609,7 @@ def submit_onboarding(
     payload: OnboardingRequest,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Query("en"),
 ):
     """
     First-login onboarding: records the user's age and which government
@@ -554,7 +658,7 @@ def submit_onboarding(
     rec = get_recommended_next_step(db, completed_ids, service_by_title)
     return OnboardingResponse(
         onboarding_completed=True,
-        recommended_next_step=build_service_out(rec, completed_ids, db) if rec else None,
+        recommended_next_step=build_service_out(rec, completed_ids, db, lang) if rec else None,
     )
 
 
@@ -565,6 +669,7 @@ def get_service_detail(
     service_id: int,
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
+    lang: str = Query("en"),
 ):
     """
     Returns full detail for a single service including whether its
@@ -589,13 +694,13 @@ def get_service_detail(
             .first()
         )
         if existing_us and existing_us.status != ServiceStatus.NOT_STARTED:
-            application = build_application_out(db, existing_us)
+            application = build_application_out(db, existing_us, lang)
 
     return ServiceDetailOut(
-        service=build_service_out(svc, completed_ids, db),
+        service=build_service_out(svc, completed_ids, db, lang),
         prerequisites_met=met,
         missing_prerequisites=missing,
-        recommended_next_step=build_service_out(rec, completed_ids, db) if rec else None,
+        recommended_next_step=build_service_out(rec, completed_ids, db, lang) if rec else None,
         application=application,
     )
 
@@ -607,6 +712,7 @@ def start_application(
     service_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Query("en"),
 ):
     """
     Starts a new application for a service: creates a UserService record
@@ -637,7 +743,7 @@ def start_application(
         )
     if existing:
         # Idempotent: an open application already exists, just return it.
-        return build_application_out(db, existing)
+        return build_application_out(db, existing, lang)
 
     us = DBUserService(
         user_id=current_user.id,
@@ -648,25 +754,29 @@ def start_application(
     db.add(us)
     db.flush()
 
-    template = STEP_TEMPLATES.get(svc.title, DEFAULT_STEP_TEMPLATE)
-    for idx, (name, desc) in enumerate(template, start=1):
+    template = get_step_template(svc.title)
+    for idx, (name, desc) in enumerate(template["en"], start=1):
+        ne = template["ne"][idx - 1] if idx - 1 < len(template["ne"]) else ("", "")
         db.add(DBProgress(
             user_service_id=us.id,
             step_number=idx,
             step_name=name,
             step_description=desc,
+            step_name_ne=ne[0] or name,
+            step_description_ne=ne[1] or desc,
             status=StepStatus.IN_PROGRESS if idx == 1 else StepStatus.PENDING,
         ))
 
     db.commit()
     db.refresh(us)
-    return build_application_out(db, us)
+    return build_application_out(db, us, lang)
 
 
 @app.get("/api/v1/applications", response_model=List[ApplicationOut])
 def list_applications(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Query("en"),
 ):
     """Returns all of the user's applications (user_service records) with
     step-level progress, newest first. Drives the profile "My Progress" list."""
@@ -676,7 +786,7 @@ def list_applications(
         .order_by(DBUserService.updated_at.desc())
         .all()
     )
-    return [build_application_out(db, us) for us in records]
+    return [build_application_out(db, us, lang) for us in records]
 
 
 @app.get("/api/v1/applications/{application_id}", response_model=ApplicationOut)
@@ -684,6 +794,7 @@ def get_application(
     application_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Query("en"),
 ):
     """Returns a user's application with its step-level progress."""
     us = (
@@ -693,7 +804,7 @@ def get_application(
     )
     if not us:
         raise HTTPException(status_code=404, detail="Application not found")
-    return build_application_out(db, us)
+    return build_application_out(db, us, lang)
 
 
 @app.post(
@@ -705,6 +816,7 @@ def complete_application_step(
     step_number: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    lang: str = Query("en"),
 ):
     """
     Marks a step of the user's application as COMPLETED and advances the
@@ -755,7 +867,7 @@ def complete_application_step(
 
     db.commit()
     db.refresh(us)
-    return build_application_out(db, us)
+    return build_application_out(db, us, lang)
 
 
 # ── DASHBOARD ENDPOINT ────────────────────────────────────────────────────────
@@ -763,7 +875,8 @@ def complete_application_step(
 @app.get("/api/v1/dashboard", response_model=DashboardOut)
 async def get_dashboard_data(
     db: Session = Depends(get_db),
-    current_user: Optional[User] = Depends(get_current_user_optional)
+    current_user: Optional[User] = Depends(get_current_user_optional),
+    lang: str = Query("en"),
 ):
     """
     Fetches real service catalog and recommendations from SQLite database.
@@ -775,18 +888,20 @@ async def get_dashboard_data(
 
     completed_ids = get_completed_service_ids(db, current_user) if current_user else set()
 
-    catalog_out = [build_service_out(s, completed_ids, db) for s in db_services]
+    catalog_out = [build_service_out(s, completed_ids, db, lang) for s in db_services]
 
     user_name = current_user.full_name if current_user else "Guest User"
     needs_onboarding = bool(current_user and not current_user.onboarding_completed)
 
     # Recommendation scoring algorithm based on DB
-    # Priority: Identity & Passport/NID services first
+    # Priority: Identity & Passport/NID services first (match on English title,
+    # independent of the display language).
+    en_titles = {s.id: s.title for s in db_services}
     recommendations_out = []
     if catalog_out:
         rec_list = sorted(
             catalog_out,
-            key=lambda x: 0 if "Passport" in x.title or "NID" in x.title else 1
+            key=lambda x: 0 if "Passport" in en_titles[x.id] or "NID" in en_titles[x.id] else 1
         )
         recommendations_out = rec_list[:2]
         for r in recommendations_out:
@@ -795,7 +910,7 @@ async def get_dashboard_data(
     # Recommended next step from the dependency chain
     next_step = get_recommended_next_step(db, completed_ids, service_by_title)
     recommended_next_step = (
-        build_service_out(next_step, completed_ids, db) if next_step else None
+        build_service_out(next_step, completed_ids, db, lang) if next_step else None
     )
 
     return DashboardOut(

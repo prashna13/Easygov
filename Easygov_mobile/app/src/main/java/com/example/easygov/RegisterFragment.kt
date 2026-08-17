@@ -48,7 +48,7 @@ class RegisterFragment : Fragment() {
 
             if (fullName.isNotEmpty() && email.isNotEmpty() && password.isNotEmpty()) {
                 btnRegister.isEnabled = false
-                btnRegister.text = "Creating account..."
+                btnRegister.text = getString(R.string.creating_account)
 
                 val registerRequest = RegisterRequest(
                     email = email,
@@ -60,7 +60,7 @@ class RegisterFragment : Fragment() {
                 RetrofitClient.apiService.registerUser(registerRequest).enqueue(object : Callback<TokenResponse> {
                     override fun onResponse(call: Call<TokenResponse>, response: Response<TokenResponse>) {
                         btnRegister.isEnabled = true
-                        btnRegister.text = "Create Account"
+                        btnRegister.text = getString(R.string.create_account)
 
                         if (response.isSuccessful && response.body() != null) {
                             val tokenResponse = response.body()!!
@@ -80,7 +80,7 @@ class RegisterFragment : Fragment() {
 
                     override fun onFailure(call: Call<TokenResponse>, t: Throwable) {
                         btnRegister.isEnabled = true
-                        btnRegister.text = "Create Account"
+                        btnRegister.text = getString(R.string.create_account)
                         Toast.makeText(context, "Error: ${t.localizedMessage}", Toast.LENGTH_LONG).show()
                     }
                 })

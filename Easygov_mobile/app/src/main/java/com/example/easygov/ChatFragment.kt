@@ -56,7 +56,7 @@ class ChatFragment : Fragment() {
 
         btnNewChat.setOnClickListener {
             chatAccumulator = ""
-            tvChatLog.text = "Ready for your question."
+            tvChatLog.text = getString(R.string.chat_ready)
             Toast.makeText(context, "New conversation started", Toast.LENGTH_SHORT).show()
         }
 

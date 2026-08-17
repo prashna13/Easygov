@@ -143,3 +143,27 @@ class DashboardOut(BaseModel):
     recommendations: List[GovServiceOut]
     needs_onboarding: bool = False
     recommended_next_step: Optional[GovServiceOut] = None
+
+
+# ── DOCUMENT STORAGE SCHEMAS ──────────────────────────────────────────────────
+
+class DocumentOut(BaseModel):
+    """A user-uploaded document in their private vault."""
+    id: int
+    label: str
+    tags: List[str] = []
+    description: Optional[str] = None
+    filename: str
+    mime_type: str
+    size_bytes: int = 0
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class DocumentUpdate(BaseModel):
+    """Editable metadata for an uploaded document."""
+    label: Optional[str] = None
+    tags: Optional[str] = None
+    description: Optional[str] = None

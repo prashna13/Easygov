@@ -28,7 +28,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="AI Assistant"
+                android:text="@string/chat_title"
                 android:textAppearance="?attr/textAppearanceHeadlineLarge"
                 android:textColor="@color/onPrimary_light" />
 
@@ -36,7 +36,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Ask about services"
+                android:text="@string/chat_subtitle"
                 android:textAppearance="?attr/textAppearanceBodySmall"
                 android:textColor="@color/primaryContainer_light" />
         </LinearLayout>
@@ -48,7 +48,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_edit"
             app:tint="@color/onPrimary_light"
-            android:contentDescription="New Chat" />
+            android:contentDescription="@string/new_chat" />
 
         <ImageButton
             android:id="@+id/btnHistory"
@@ -58,7 +58,7 @@
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_recent_history"
             app:tint="@color/onPrimary_light"
-            android:contentDescription="History" />
+            android:contentDescription="@string/history" />
     </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -82,7 +82,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:lineSpacingExtra="4dp"
-            android:text="Ready for your question."
+            android:text="@string/chat_ready"
             android:textAppearance="?attr/textAppearanceBodyLarge"
             android:textColor="?attr/colorOnSurface" />
     </androidx.core.widget.NestedScrollView>
@@ -110,7 +110,7 @@
             android:layout_marginEnd="10dp"
             android:layout_weight="1"
             android:background="@drawable/bg_input"
-            android:hint="Ask a question"
+            android:hint="@string/ask_question"
             android:importantForAutofill="no"
             android:inputType="textLongMessage"
             android:maxLines="3"
@@ -127,6 +127,6 @@
             android:insetRight="0dp"
             android:insetBottom="0dp"
             android:minWidth="0dp"
-            android:text="Send" />
+            android:text="@string/send" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

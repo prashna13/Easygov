@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingStart="24dp"
+    android:paddingTop="20dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="8dp">
+
+    <EditText
+        android:id="@+id/etDocLabel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="@string/doc_pick_label"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:maxLength="200"
+        android:textAppearance="?attr/textAppearanceBodyLarge" />
+
+    <EditText
+        android:id="@+id/etDocTags"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:hint="@string/doc_tags_hint"
+        android:importantForAutofill="no"
+        android:inputType="text"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+
+    <EditText
+        android:id="@+id/etDocDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="14dp"
+        android:hint="@string/doc_optional_desc"
+        android:importantForAutofill="no"
+        android:inputType="textMultiLine"
+        android:minLines="2"
+        android:textAppearance="?attr/textAppearanceBodyMedium" />
+</LinearLayout>

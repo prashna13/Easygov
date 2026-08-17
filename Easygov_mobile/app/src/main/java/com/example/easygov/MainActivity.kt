@@ -31,6 +31,15 @@ class MainActivity : AppCompatActivity() {
                     loadFragment(ChatFragment())
                     true
                 }
+                R.id.nav_documents -> {
+                    val sessionManager = SessionManager.getInstance(this@MainActivity)
+                    if (sessionManager.fetchAuthToken() != null) {
+                        loadFragment(DocumentsFragment())
+                    } else {
+                        loadFragment(LoginFragment())
+                    }
+                    true
+                }
                 R.id.nav_profile -> {
                     val sessionManager = SessionManager.getInstance(this@MainActivity)
                     if (sessionManager.fetchAuthToken() != null) {

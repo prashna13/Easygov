@@ -26,7 +26,7 @@
                 android:id="@+id/tvDetailTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Service Title"
+                android:text="@string/detail_title_placeholder"
                 android:textAppearance="?attr/textAppearanceHeadlineLarge"
                 android:textColor="@color/onPrimary_light" />
 
@@ -38,7 +38,7 @@
                 android:background="@drawable/bg_category_tag"
                 android:paddingHorizontal="12dp"
                 android:paddingVertical="6dp"
-                android:text="Category"
+                android:text="@string/detail_category_placeholder"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="?attr/colorOnSecondaryContainer" />
         </LinearLayout>
@@ -56,7 +56,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Overview"
+                android:text="@string/detail_overview"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
 
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:lineSpacingExtra="4dp"
-                android:text="Detailed information about this service will be populated here. This includes requirements, fees, and step-by-step instructions."
+                android:text="@string/detail_overview_placeholder"
                 android:textAppearance="?attr/textAppearanceBodyLarge"
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
@@ -86,7 +86,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Official Guide"
+                android:text="@string/detail_official_guide"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
 
@@ -115,7 +115,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Prerequisite Required"
+                android:text="@string/detail_prereq_required"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="@color/warning_light" />
 
@@ -125,7 +125,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:lineSpacingExtra="4dp"
-                android:text="This service becomes available after completing its required documents."
+                android:text="@string/detail_prereq_msg"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -134,7 +134,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="18dp"
-                android:text="View Information Anyway"
+                android:text="@string/detail_view_info"
                 app:backgroundTint="@color/surfaceVariant_light"
                 app:cornerRadius="12dp"
                 app:icon="@android:drawable/ic_menu_view"
@@ -159,7 +159,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Read-only preview"
+                android:text="@string/detail_readonly"
                 android:textAppearance="?attr/textAppearanceLabelLarge"
                 android:textColor="@color/warning_light" />
 
@@ -167,7 +167,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="You are viewing this service for information only. Complete its prerequisites to unlock applications and progress tracking."
+                android:text="@string/detail_readonly_msg"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
         </LinearLayout>
@@ -185,7 +185,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Next Steps"
+                android:text="@string/detail_next_steps"
                 android:textAppearance="?attr/textAppearanceTitleLarge"
                 android:textColor="?attr/colorOnSurface" />
 
@@ -193,7 +193,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
-                android:text="Prepare documents, confirm fees, and ask the assistant for service-specific requirements before visiting an office."
+                android:text="@string/detail_next_steps_msg"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="?attr/colorOnSurfaceVariant" />
 
@@ -202,7 +202,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="18dp"
-                android:text="Apply Now" />
+                android:text="@string/apply_now" />
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

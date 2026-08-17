@@ -26,9 +26,15 @@ class ApplicationsAdapter(
 
     override fun onBindViewHolder(holder: ApplicationViewHolder, position: Int) {
         val app = getItem(position)
+        val context = holder.itemView.context
         holder.title.text = app.serviceTitle
         holder.percent.text = "${app.progressPercent}%"
-        holder.status.text = app.status.replace("_", " ")
+        holder.status.text = when (app.status) {
+            "COMPLETED" -> context.getString(R.string.status_completed)
+            "IN_PROGRESS" -> context.getString(R.string.status_in_progress)
+            "NOT_STARTED" -> context.getString(R.string.status_not_started)
+            else -> app.status.replace("_", " ")
+        }
         holder.progressBar.progress = app.progressPercent
         holder.itemView.setOnClickListener { onItemClick(app) }
     }

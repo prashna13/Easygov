@@ -1,0 +1,162 @@
+<resources>
+    <string name="app_name">EasyGov</string>
+
+    <!-- Bottom navigation -->
+    <string name="nav_dashboard">ड्यासबोर्ड</string>
+    <string name="nav_chat">एआई सहायक</string>
+    <string name="nav_profile">प्रोफाइल</string>
+
+    <!-- Dashboard -->
+    <string name="dash_brand">EasyGov नेपाल</string>
+    <string name="dash_subtitle">तपाईंको प्रोफाइलका लागि सिफारिस गरिएका सेवाहरू र अर्को चरणहरू</string>
+    <string name="dash_priority_count">२ प्राथमिकता</string>
+    <string name="dash_service_count">४ सेवाहरू</string>
+    <string name="dash_next_step_label">सिफारिस गरिएको अर्को चरण</string>
+    <string name="dash_next_step_placeholder">इ-पासपोर्ट आवेदन</string>
+    <string name="dash_next_step_tap">आवश्यकताहरू र अर्को चरणहरू हेर्न ट्याप गर्नुहोस्</string>
+    <string name="dash_for_you">तपाईंको लागि</string>
+    <string name="dash_all_services">सबै सेवाहरू</string>
+    <string name="dash_welcome">स्वागत छ, %1$s — व्यक्तिगत सेवाहरू र गाइडहरू</string>
+    <string name="dash_conn_error">जडान त्रुटि</string>
+    <string name="dash_conn_error_msg">आफ्नो इन्टरनेट जाँच गरी फेरि प्रयास गर्नुहोस्।</string>
+    <string name="retry">पुनः प्रयास गर्नुहोस्</string>
+
+    <!-- Service detail -->
+    <string name="detail_title_placeholder">सेवाको शीर्षक</string>
+    <string name="detail_category_placeholder">श्रेणी</string>
+    <string name="detail_overview">अवलोकन</string>
+    <string name="detail_overview_placeholder">यस सेवाको बारेमा विस्तृत जानकारी यहाँ देखाइनेछ। यसमा आवश्यकताहरू, शुल्कहरू, र चरण-दर-चरण निर्देशनहरू समावेश छन्।</string>
+    <string name="detail_official_guide">आधिकारिक गाइड</string>
+    <string name="detail_prereq_required">पूर्वशर्त आवश्यक</string>
+    <string name="detail_prereq_msg">यो सेवा आवश्यक कागजातहरू पूरा गरेपछि मात्र उपलब्ध हुन्छ।</string>
+    <string name="detail_view_info">जानकारी जस्तो भए पनि हेर्नुहोस्</string>
+    <string name="detail_readonly">पढ्न-मात्र पूर्वावलोकन</string>
+    <string name="detail_readonly_msg">तपाईं यो सेवा केवल जानकारीका लागि हेर्दै हुनुहुन्छ। आवेदन र प्रगति ट्र्याकिङ अनलक गर्न यसका पूर्वशर्तहरू पूरा गर्नुहोस्।</string>
+    <string name="detail_next_steps">अर्को चरणहरू</string>
+    <string name="detail_next_steps_msg">कुनै कार्यालय जानु अघि कागजातहरू तयार गर्नुहोस्, शुल्कहरू पुष्टि गर्नुहोस्, र सेवा-विशेष आवश्यकताहरूका लागि सहायकलाई सोध्नुहोस्।</string>
+    <string name="apply_now">अहिले नै आवेदन गर्नुहोस्</string>
+    <string name="view_my_application">मेरो आवेदन हेर्नुहोस्</string>
+
+    <!-- Application progress -->
+    <string name="app_progress_title">आवेदन प्रगति</string>
+    <string name="app_progress_subtitle">आवेदन प्रक्रियामा तपाईं कहाँ हुनुहुन्छ ट्र्याक गर्नुहोस्</string>
+    <string name="app_progress_subtitle_2">आफ्नो प्रगति चरणबद्ध रूपमा ट्र्याक गर्नुहोस्</string>
+    <string name="status_in_progress">प्रगतिमा छ</string>
+    <string name="status_completed">पूरा भयो</string>
+    <string name="status_not_started">सुरु भएको छैन</string>
+    <string name="overall_progress">समग्र प्रगति</string>
+    <string name="app_progress_hint">तपाईंको हालको चरण तल हाइलाइट गरिएको छ — सम्पन्न गर्दा टिक गर्नुहोस्।</string>
+    <string name="app_completed">आवेदन पूरा भयो</string>
+    <string name="app_completed_msg">बधाई छ! तपाईंले हरेक चरण पूरा गर्नुभयो। आफ्नो रसिद सुरक्षित राख्नुहोस् र जिम्मेवार कार्यालयका थप निर्देशनहरू पालना गर्नुहोस्।</string>
+    <string name="app_done_hint">हरेक चरण पूरा भयो — यो आवेदन सम्पन्न भएको छ।</string>
+    <string name="checklist">चेकलिस्ट</string>
+    <string name="checklist_msg">आफ्नो प्रगति ट्र्याक गर्न प्रत्येक चरण सम्पन्न गर्दा चिन्ह लगाउनुहोस्।</string>
+    <string name="app_load_error">यो आवेदन लोड गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।</string>
+    <string name="app_not_found">आवेदन भेटिएन।</string>
+    <string name="sign_in_required">आफ्नो आवेदन हेर्न कृपया साइन इन गर्नुहोस्।</string>
+    <string name="step_label">चरण %1$d - %2$s</string>
+
+    <!-- Chat -->
+    <string name="chat_title">एआई सहायक</string>
+    <string name="chat_subtitle">सेवाहरूको बारेमा सोध्नुहोस्</string>
+    <string name="new_chat">नयाँ च्याट</string>
+    <string name="history">इतिहास</string>
+    <string name="chat_ready">तपाईंको प्रश्नको लागि तयार।</string>
+    <string name="ask_question">प्रश्न सोध्नुहोस्</string>
+    <string name="send">पठाउनुहोस्</string>
+    <string name="chat_history">च्याट इतिहास</string>
+    <string name="no_history">कुनै इतिहास भेटिएन</string>
+
+    <!-- Login / Register -->
+    <string name="profile_title">प्रोफाइल</string>
+    <string name="login_subtitle">सुरक्षित सेवाहरू र व्यक्तिगत सिफारिसहरूमा पहुँच</string>
+    <string name="sign_in">साइन इन</string>
+    <string name="login_continue_msg">आफ्नो EasyGov खाताबाट जारी राख्नुहोस्</string>
+    <string name="email">इमेल</string>
+    <string name="password">पासवर्ड</string>
+    <string name="login">लगइन</string>
+    <string name="signing_in">साइन इन हुँदैछ...</string>
+    <string name="no_account_signup">खाता छैन? साइन अप गर्नुहोस्</string>
+    <string name="account_preview">खाता पूर्वावलोकन</string>
+    <string name="account_preview_msg">साइन इन गरेपछि सुरक्षित आवेदनहरू, सेवा इतिहास, र सिफारिस समायोजन यहाँ देखा पर्नेछन्।</string>
+    <string name="join_easygov">EasyGov मा सामेल हुनुहोस्</string>
+    <string name="register_subtitle">व्यक्तिगत सरकारी सेवाहरूका लागि खाता सिर्जना गर्नुहोस्</string>
+    <string name="full_name">पूरा नाम</string>
+    <string name="phone_optional">फोन (ऐच्छिक)</string>
+    <string name="create_account">खाता सिर्जना गर्नुहोस्</string>
+    <string name="creating_account">खाता सिर्जना हुँदैछ...</string>
+    <string name="have_account_signin">पहिले नै खाता छ? साइन इन गर्नुहोस्</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_title">आफ्नो प्रोफाइल पूरा गर्नुहोस्</string>
+    <string name="onboarding_subtitle">हामी सरकारी सेवाहरू र अर्को चरणहरू व्यक्तिगत बनाउन सकौं भन्नका लागि आफ्नो बारेमा बताउनुहोस्</string>
+    <string name="about_you">तपाईंको बारेमा</string>
+    <string name="your_age">तपाईंको उमेर</string>
+    <string name="docs_you_have">तपाईंसँग भएका कागजातहरू</string>
+    <string name="docs_you_have_msg">तपाईंसँग भएका कागजातहरू चयन गर्नुहोस् ताकि हामी तिनीहरूलाई फेरि सिफारिस नगरौं</string>
+    <string name="doc_citizenship">नागरिकता प्रमाणपत्र</string>
+    <string name="doc_nid">राष्ट्रिय परिचयपत्र (NID)</string>
+    <string name="doc_passport">पासपोर्ट</string>
+    <string name="doc_driving">ड्राइभिङ लाइसेन्स</string>
+    <string name="action_continue">जारी राख्नुहोस्</string>
+    <string name="saving">सुरक्षित हुँदैछ...</string>
+
+    <!-- Profile -->
+    <string name="profile_avatar">प्रोफाइल अवतार</string>
+    <string name="profile_name_placeholder">पूरा नाम</string>
+    <string name="profile_email_placeholder">user@example.com</string>
+    <string name="personal_info">व्यक्तिगत विवरण</string>
+    <string name="citizenship_no">नागरिकता नं.</string>
+    <string name="phone">फोन</string>
+    <string name="province">प्रदेश</string>
+    <string name="date_of_birth">जन्म मिति</string>
+    <string name="age">उमेर</string>
+    <string name="address">ठेगाना</string>
+    <string name="my_applications">मेरा आवेदनहरू र प्रगति</string>
+    <string name="no_applications">तपाईंले अहिलेसम्म कुनै आवेदन सुरु गर्नुभएको छैन। सेवाका लागि आवेदन गर्न ड्यासबोर्ड ब्राउज गर्नुहोस्।</string>
+    <string name="sign_out">साइन आउट</string>
+    <string name="profile_load_error">तपाईंको प्रोफाइल लोड गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।</string>
+    <string name="sign_in_for_profile">आफ्नो प्रोफाइल हेर्न कृपया साइन इन गर्नुहोस्।</string>
+    <string name="server_error">सर्भर त्रुटि: %1$s</string>
+    <string name="network_failure">नेटवर्क विफलता: %1$s</string>
+    <string name="language">भाषा</string>
+
+    <!-- Language selector -->
+    <string name="lang_en">English</string>
+    <string name="lang_ne">नेपाली</string>
+
+    <!-- Item cards -->
+    <string name="service_icon">सेवा आइकन</string>
+    <string name="service_name_placeholder">सेवाको नाम</string>
+
+    <!-- Documents vault -->
+    <string name="doc_title">मेरा कागजातहरू</string>
+    <string name="doc_subtitle">तपाईंको कागजात तस्बिरहरू अपलोड गर्नुहोस् र कहींबाट पनि पहुँच गर्नुहोस्</string>
+    <string name="doc_upload">कागजात अपलोड गर्नुहोस्</string>
+    <string name="doc_uploading">अपलोड हुँदैछ...</string>
+    <string name="doc_empty">अहिलेसम्म कुनै कागजात छैन। पहिलो कागजात थप्न "कागजात अपलोड गर्नुहोस्" ट्याप गर्नुहोस्।</string>
+    <string name="doc_load_fail">तपाईंको कागजातहरू लोड गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।</string>
+    <string name="doc_upload_fail">अपलोड असफल भयो। कृपया फाइल जाँच गरी फेरि प्रयास गर्नुहोस्।</string>
+    <string name="doc_sign_in">आफ्नो कागजात हेर्न कृपया साइन इन गर्नुहोस्।</string>
+    <string name="doc_pick_label">लेबल छान्नुहोस्</string>
+    <string name="doc_label_hint">जस्तै: नागरिकता प्रमाणपत्र</string>
+    <string name="doc_tags_hint">ट्यागहरू (अल्पविरामले छुट्याइएको) — जस्तै: पहिचान, पासपोर्ट</string>
+    <string name="doc_optional_desc">विवरण (ऐच्छिक)</string>
+    <string name="doc_save">सुरक्षित गर्नुहोस्</string>
+    <string name="doc_cancel">रद्द गर्नुहोस्</string>
+    <string name="doc_upload_btn">अपलोड</string>
+    <string name="doc_details">कागजात विवरण</string>
+    <string name="doc_filename">फाइल</string>
+    <string name="doc_size">आकार</string>
+    <string name="doc_uploaded_on">%1$s मा अपलोड गरिएको</string>
+    <string name="doc_view">हेर्नुहोस्</string>
+    <string name="doc_delete">मेट्नुहोस्</string>
+    <string name="doc_delete_confirm">कागजात मेट्ने हो?</string>
+    <string name="doc_delete_msg">"%1$s" स्थायी रूपमा हटाइनेछ। यो फिर्ता गर्न सकिँदैन।</string>
+    <string name="doc_deleted">कागजात मेटियो</string>
+    <string name="doc_downloading">डाउनलोड हुँदैछ...</string>
+    <string name="doc_no_viewer">यो फाइल प्रकार खोल्ने कुनै एप छैन।</string>
+    <string name="doc_retry">पुनः प्रयास गर्नुहोस्</string>
+    <string name="doc_tags_label">ट्यागहरू</string>
+    <string name="doc_unknown_name">कागजात</string>
+</resources>

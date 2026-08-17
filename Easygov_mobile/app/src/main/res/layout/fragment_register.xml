@@ -27,7 +27,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Join EasyGov"
+                android:text="@string/join_easygov"
                 android:textAppearance="?attr/textAppearanceHeadlineLarge"
                 android:textColor="@color/onPrimary_light" />
 
@@ -35,7 +35,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
-                android:text="Create an account for personalized government services"
+                android:text="@string/register_subtitle"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/primaryContainer_light" />
         </LinearLayout>
@@ -57,7 +57,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Full Name"
+                android:hint="@string/full_name"
                 app:boxStrokeColor="@color/primary_light"
                 app:startIconDrawable="@android:drawable/ic_menu_myplaces">
                 <com.google.android.material.textfield.TextInputEditText
@@ -71,7 +71,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:hint="Email"
+                android:hint="@string/email"
                 app:boxStrokeColor="@color/primary_light"
                 app:startIconDrawable="@android:drawable/ic_dialog_email">
                 <com.google.android.material.textfield.TextInputEditText
@@ -85,7 +85,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:hint="Phone (Optional)"
+                android:hint="@string/phone_optional"
                 app:boxStrokeColor="@color/primary_light"
                 app:startIconDrawable="@android:drawable/stat_sys_phone_call">
                 <com.google.android.material.textfield.TextInputEditText
@@ -99,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:hint="Password"
+                android:hint="@string/password"
                 app:boxStrokeColor="@color/primary_light"
                 app:endIconMode="password_toggle"
                 app:startIconDrawable="@android:drawable/ic_lock_lock">
@@ -115,7 +115,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
                 android:layout_marginTop="22dp"
-                android:text="Create Account" />
+                android:text="@string/create_account" />
 
             <TextView
                 android:id="@+id/tvSignIn"
@@ -123,7 +123,7 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center"
                 android:layout_marginTop="16dp"
-                android:text="Already have an account? Sign in"
+                android:text="@string/have_account_signin"
                 android:textAppearance="?attr/textAppearanceBodyMedium"
                 android:textColor="@color/primary_light"
                 android:textStyle="bold"

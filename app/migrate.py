@@ -26,7 +26,7 @@ from app.database import engine, Base, DATABASE_URL
 
 # Import all models so that Base.metadata knows about all tables.
 # If you add a new model to models.py, make sure it's imported here.
-from app.models import User, GovService, PrerequisiteRule, UserService, Progress, ChatMessage  # noqa: F401
+from app.models import User, GovService, PrerequisiteRule, UserService, Progress, ChatMessage, Document  # noqa: F401
 
 # Columns that were added AFTER the original table creation.
 # create_all() does NOT add columns to existing tables, so we patch them here.
@@ -37,7 +37,15 @@ ADD_COLUMNS = {
         "onboarding_completed": "BOOLEAN DEFAULT 0 NOT NULL",
     },
     "gov_services": {
-        "guidance": "TEXT",
+        "guidance":        "TEXT",
+        "title_ne":        "VARCHAR(200)",
+        "category_ne":     "VARCHAR(100)",
+        "description_ne":  "TEXT",
+        "guidance_ne":     "TEXT",
+    },
+    "progress": {
+        "step_name_ne":         "VARCHAR(200)",
+        "step_description_ne":  "TEXT",
     },
 }
 

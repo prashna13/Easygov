@@ -28,7 +28,9 @@ class ProgressStepAdapter(
     override fun onBindViewHolder(holder: StepViewHolder, position: Int) {
         val step = getItem(position)
 
-        holder.checkbox.text = "Step ${step.stepNumber} — ${step.stepName}"
+        holder.checkbox.text = holder.itemView.context.getString(
+            R.string.step_label, step.stepNumber, step.stepName
+        )
         holder.checkbox.isEnabled = step.status == "IN_PROGRESS"
         holder.checkbox.isChecked = step.status == "COMPLETED"
 

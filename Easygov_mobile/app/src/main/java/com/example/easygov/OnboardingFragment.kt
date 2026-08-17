@@ -62,7 +62,7 @@ class OnboardingFragment : Fragment() {
             }
 
             btnSubmit.isEnabled = false
-            btnSubmit.text = "Saving..."
+            btnSubmit.text = getString(R.string.saving)
 
             val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken() ?: ""
             RetrofitClient.apiService.submitOnboarding(
@@ -74,7 +74,7 @@ class OnboardingFragment : Fragment() {
                     response: Response<OnboardingResponse>
                 ) {
                     btnSubmit.isEnabled = true
-                    btnSubmit.text = "Continue"
+                    btnSubmit.text = getString(R.string.action_continue)
 
                     if (response.isSuccessful) {
                         Toast.makeText(
@@ -101,7 +101,7 @@ class OnboardingFragment : Fragment() {
 
                 override fun onFailure(call: Call<OnboardingResponse>, t: Throwable) {
                     btnSubmit.isEnabled = true
-                    btnSubmit.text = "Continue"
+                    btnSubmit.text = getString(R.string.action_continue)
                     Toast.makeText(
                         context,
                         "Error: ${t.localizedMessage}",

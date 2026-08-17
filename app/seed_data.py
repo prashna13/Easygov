@@ -31,6 +31,7 @@ from app.models import (
     User, GovService, PrerequisiteRule,
     UserService, Progress, ServiceStatus, StepStatus
 )
+from app.nepali_content import SERVICE_NE, SEED_STEPS_NE
 
 def hash_password(plain: str) -> str:
     """Hash a plain-text password using bcrypt."""
@@ -325,6 +326,15 @@ GOV_SERVICES_DATA = [
     },
 ]
 
+# Merge auto-generated Nepali translations into the service definitions.
+for _svc in GOV_SERVICES_DATA:
+    _ne = SERVICE_NE.get(_svc["title"])
+    if _ne:
+        _svc["title_ne"] = _ne["title"]
+        _svc["category_ne"] = _ne["category"]
+        _svc["description_ne"] = _ne["description"]
+        _svc["guidance_ne"] = _ne["guidance"]
+
 # Maps (service_title, prerequisite_title, is_mandatory, notes)
 # Citizenship is the root document; NID builds on it; passport and driving
 # license come last. Mirrors the Nepal Essential Documents Guide.
@@ -424,6 +434,15 @@ CITIZENSHIP_STEPS = [
         "notes":          "Collected successfully. Document stored safely.",
     },
 ]
+
+# Merge auto-generated Nepali step translations into the seeded step definitions.
+for _steps, _ne_steps in (
+    (NID_STEPS, SEED_STEPS_NE["NID_STEPS"]),
+    (CITIZENSHIP_STEPS, SEED_STEPS_NE["CITIZENSHIP_STEPS"]),
+):
+    for _s, _ne in zip(_steps, _ne_steps):
+        _s["step_name_ne"] = _ne[0]
+        _s["step_description_ne"] = _ne[1]
 
 
 # ── SEED FUNCTIONS ────────────────────────────────────────────────────────────
@@ -540,10 +559,20 @@ def seed_user_services(db, user: User, service_map: dict):
             db.flush()
             print(f"   [ADDED] UserService: 'Citizenship Certificate Copy' -> COMPLETED")
 
-            for step_data in CITIZENSHIP_STEPS:
+        # Upsert the seeded steps (fills any missing Nepali translations).
+        for step_data in CITIZENSHIP_STEPS:
+            step = (
+                db.query(Progress)
+                .filter_by(user_service_id=us_citizenship.id, step_number=step_data["step_number"])
+                .first()
+            )
+            if step is None:
                 step = Progress(user_service_id=us_citizenship.id, **step_data)
                 db.add(step)
-                print(f"      - Step {step_data['step_number']}: '{step_data['step_name']}' [{step_data['status'].value}]")
+            else:
+                for field, value in step_data.items():
+                    setattr(step, field, value)
+            print(f"      - Step {step_data['step_number']}: '{step_data['step_name']}' [{step_data['status'].value}]")
 
     # ── Record 2: NID Registration (IN_PROGRESS) ─────────────────────────────
     nid_svc = service_map.get("NID Registration")
@@ -554,6 +583,7 @@ def seed_user_services(db, user: User, service_map: dict):
 
         if existing:
             print(f"   [SKIP] UserService for 'NID Registration' (already exists)")
+            us_nid = existing
         else:
             us_nid = UserService(
                 user_id    = user.id,
@@ -566,10 +596,20 @@ def seed_user_services(db, user: User, service_map: dict):
             db.flush()
             print(f"   [ADDED] UserService: 'NID Registration' -> IN_PROGRESS")
 
-            for step_data in NID_STEPS:
+        # Upsert the seeded steps (fills any missing Nepali translations).
+        for step_data in NID_STEPS:
+            step = (
+                db.query(Progress)
+                .filter_by(user_service_id=us_nid.id, step_number=step_data["step_number"])
+                .first()
+            )
+            if step is None:
                 step = Progress(user_service_id=us_nid.id, **step_data)
                 db.add(step)
-                print(f"      - Step {step_data['step_number']}: '{step_data['step_name']}' [{step_data['status'].value}]")
+            else:
+                for field, value in step_data.items():
+                    setattr(step, field, value)
+            print(f"      - Step {step_data['step_number']}: '{step_data['step_name']}' [{step_data['status'].value}]")
 
     db.commit()
 

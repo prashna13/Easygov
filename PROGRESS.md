@@ -45,6 +45,8 @@ EasyGov_project/
 │   ├── auth_utils.py           # [DONE] Password hashing, JWT token encoding/decoding, get_current_user dependencies
 │   ├── migrate.py              # [DONE] Table creation script (idempotent)
 │   ├── seed_data.py            # [DONE] Seed script (re-runnable, skip-on-duplicate)
+│   ├── nepali_content.py       # [DONE] Generated Nepali translations (SERVICE_NE, STEP_TEMPLATES_NE, SEED_STEPS_NE)
+│   ├── translate_seed.py       # [DONE] LLM translation generator → nepali_content.py
 │   ├── main.py                 # FastAPI app — /ask, auth, dashboard, onboarding, service detail, application progress endpoints
 │   ├── ingest_data.py          # PDF/MD ingestion pipeline → ChromaDB
 │   ├── frontend.py             # Streamlit web UI (dev/demo only)
@@ -73,6 +75,8 @@ EasyGov_project/
         │   ├── ChatHistoryAdapter.kt    # [DONE] Adapter for chat history bottom sheet
         │   ├── ChatHistoryBottomSheet.kt# [DONE] Fetches /chat/history, newest-first list
         │   ├── SessionManager.kt        # AES256 encrypted token storage
+        │   ├── LocaleManager.kt         # [DONE] Persists app language (SharedPreferences) + applies locale
+        │   ├── EasyGovApp.kt            # [DONE] Application class — inits Retrofit + stored locale on launch
         │   ├── ChatNetworkInterface.kt  # ChatRequest/ChatResponse/ChatHistoryResponse DTOs
         │   ├── model/
         │   │   ├── GovService.kt
@@ -96,7 +100,8 @@ EasyGov_project/
             ├── item_progress_step.xml
             ├── bottom_sheet_chat_history.xml
             ├── item_dashboard_card.xml
-            └── item_chat_history.xml
+            ├── item_chat_history.xml
+            └── values-ne/strings.xml     # [DONE] Full Nepali UI strings
 ```
 
 ---
@@ -118,7 +123,7 @@ EasyGov_project/
 | Method | Endpoint | Status | Notes |
 |---|---|---|---|
 | GET | `/` | LIVE | Health check |
-| POST | `/ask` | LIVE | RAG chatbot — question → ChromaDB → LLM → answer + sources |
+| POST | `/ask` | LIVE | RAG chatbot — question → ChromaDB → LLM → answer + sources; detects query language (`langdetect`) and answers in the query's language (Nepali/English) |
 | POST | `/auth/register` | LIVE | Creates user, hashes password with bcrypt, returns JWT token |
 | POST | `/auth/login` | LIVE | Verifies bcrypt password, returns JWT token + user profile |
 | GET | `/auth/me` | LIVE | Protected — full profile: name, email, phone, citizenship no., province, age, DOB, address, onboarding status |
@@ -132,6 +137,8 @@ EasyGov_project/
 | GET | `/chat/history` | LIVE | Protected — returns saved chat history for the authenticated user |
 | GET | `/api/v1/user/progress` | NOT BUILT | Replaced by `/api/v1/applications` (aggregate) + `/api/v1/applications/{id}` (detail) |
 | PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Superseded by `POST /api/v1/applications/{id}/steps/{n}/complete` (build separately if desired) |
+
+**Language support**: All user-facing endpoints (`/api/v1/dashboard`, `/api/v1/onboarding`, `/api/v1/services/{id}`, `/api/v1/services/{id}/apply`, `/api/v1/applications`, `/api/v1/applications/{id}`, `/api/v1/applications/{id}/steps/{n}/complete`) accept an optional `lang=en|ne` query param (default `en`). Nepali content is stored in `gov_services.title_ne/category_ne/description_ne/guidance_ne` and `progress.step_name_ne/step_description_ne`; the Android `RetrofitClient` interceptor appends `lang` automatically from the selected app language. `/ask` and `/chat/history` are unaffected.
 
 ---
 
@@ -163,6 +170,11 @@ EasyGov_project/
 - [x] **Android Application Progress**: "Apply Now" on the service detail starts an application (or opens "View My Application"); new `ApplicationProgressFragment` shows status chip, progress bar + %, and a tappable step checklist that marks steps complete via the backend
 - [x] **Rich Profile Backend**: `/auth/me` now returns full profile (age, DOB, address, onboarding status); new `GET /api/v1/applications` returns all user applications with progress %
 - [x] **Android Profile Page**: `ProfileFragment` shows full personal info from `/auth/me` plus a "My Applications & Progress" list (status chips + progress bars) that opens each application's tracker; logout retained; APK built
+- [x] **Nepali Content Generation**: `translate_seed.py` calls OpenRouter LLM to produce verified Devanagari translations for all 4 services + step templates + seed steps → `app/nepali_content.py` (SERVICE_NE / STEP_TEMPLATES_NE / DEFAULT_STEP_TEMPLATE_NE / SEED_STEPS_NE)
+- [x] **Bilingual Backend**: 6 new columns (`title_ne`, `category_ne`, `description_ne`, `guidance_ne`, `step_name_ne`, `step_description_ne`) migrated; seed merges NE fields (with step upsert for existing UserServices); all user-facing endpoints accept `lang`; dashboard recommendation scoring made language-independent via English-title map
+- [x] **Android Locale Switching**: `LocaleManager` (SharedPreferences) + `EasyGovApp` Application (applies stored locale on launch) + Retrofit lang interceptor; `values-ne/strings.xml` full translation; Profile language selector (`MaterialButtonToggleGroup`) switches app-wide via `AppCompatDelegate.setApplicationLocales`; all layouts/kotlin files converted to `@string` resources; APK rebuilt and verified on emulator (UI + API content + persistence across restart)
+- [x] **Document Vault (Backend)**: `POST/GET /api/v1/documents`, `GET /api/v1/documents/{id}/download`, `DELETE /api/v1/documents/{id}`; `documents` table + `documents/{user_id}/` file storage (JPEG/PNG/WEBP/HEIC/PDF, max 10 MB); upload accepts `label`, `tags`, optional `description`; label required/validated; ownership enforced
+- [x] **Document Vault (Android)**: New "Documents" bottom-nav tab; `DocumentsFragment` + `DocumentsAdapter` — upload via system picker → label/tags/description dialog → multipart upload; list shows label/filename/tags/size·date; detail sheet (View image preview / open PDF via FileProvider, Delete with confirm); persists across restarts; APK rebuilt and verified end-to-end on emulator (upload → DB+file → list → view → delete → re-upload)
 
 ---
 
@@ -176,6 +188,9 @@ EasyGov_project/
 - [ ] "My Applications" section on the **dashboard** (currently on Profile screen) so started applications are visible without switching tabs
 - [ ] Dashboard service cards show a small status badge (IN PROGRESS / COMPLETED) using the service detail application info
 - [ ] Confirmation UI / receipt reference after an application completes
+
+### Low Priority - Nepali Content
+- [ ] Re-translate NID guidance headings that remained English (STEP-BY-STEP PROCEDURE / FEES / PROCESSING TIME / OFFICIAL RESOURCES) — cosmetic
 
 ---
 
@@ -203,3 +218,11 @@ EasyGov_project/
 | 2026-08-11 | Android: `ApplicationModels.kt`, `ApplicationProgressFragment` + layout + `ProgressStepAdapter`, wired Apply Now on service detail; APK built successfully |
 | 2026-08-11 | Rich profile: `/auth/me` extended (age, DOB, address, onboarding), new `GET /api/v1/applications`; seed backfills profile for existing test user |
 | 2026-08-11 | Android: rewrote `ProfileFragment` + layout — full personal info panel + "My Applications & Progress" list (status chips, progress bars, tap-to-open tracker); APK built successfully |
+| 2026-08-13 | **Nepali localization — content**: wrote + ran `app/translate_seed.py` → `app/nepali_content.py` (verified Devanagari service titles/categories/descriptions/guidance, all 4 step templates, default template, seed steps; guidance URLs intact) |
+| 2026-08-13 | **Nepali localization — backend**: migrated 6 NE columns; `seed_data.py` merges NE fields + upserts NE steps for existing UserServices; all user-facing endpoints accept `lang=en|ne`; recommendation scoring fixed via English-title map; verified `?lang=ne` returns Devanagari end-to-end, `?lang=en` unaffected |
+| 2026-08-13 | **Nepali localization — Android**: `LocaleManager`, `EasyGovApp`, Retrofit lang interceptor, full `values-ne/strings.xml`, Profile language selector, all layouts + Kotlin converted to `@string`; fixed `continue` reserved-word + OkHttp `url()` access build errors; APK rebuilt (7.2 MB) |
+| 2026-08-13 | Verified on emulator (Medium_Phone AVD): Profile → नेपाली switches UI + API content to Devanagari (dashboard titles, full service guidance, application titles/status), survives app restart; English toggle unaffected |
+| 2026-08-13 | **RAG Nepali query support (Route A)**: `/ask` now detects query language via `langdetect` and answers in the query's language (`NEPALI`/`ENGLISH`); multilingual embeddings already handle cross-lingual retrieval. Verified: Nepali query → Devanagari answer with correct sources; English query unaffected |
+| 2026-08-16 | **Document vault**: backend endpoints + `documents` table + per-user file storage; Android `DocumentsFragment`/`DocumentsAdapter` + Documents nav tab + upload/view/delete UI; APK built (7.4 MB) |
+| 2026-08-16 | Verified document vault end-to-end on emulator: upload via picker → dialog (label/tags/desc) → stored in `db_storage/documents/{user_id}/` + `easygov.db`; list, detail sheet, image view, delete-with-confirm all work; survives restart |
+| 2026-08-16 | **Bugfix**: upload dialog's optional Description field was never read or sent — added `etDocDescription` wiring + `@Part("description")` in `ApiService.uploadDocument`; rebuilt, re-verified description now persists and displays |

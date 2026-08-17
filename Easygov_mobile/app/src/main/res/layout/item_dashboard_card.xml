@@ -30,7 +30,7 @@
                 android:id="@+id/ivServiceIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:contentDescription="Service Icon"
+                android:contentDescription="@string/service_icon"
                 app:srcCompat="@android:drawable/ic_menu_help"
                 app:tint="@color/primary_light" />
         </FrameLayout>
@@ -42,7 +42,7 @@
             android:layout_marginTop="12dp"
             android:ellipsize="end"
             android:maxLines="2"
-            android:text="Service Name"
+            android:text="@string/service_name_placeholder"
             android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceLabelLarge"
             android:textColor="?attr/colorOnSurface" />
