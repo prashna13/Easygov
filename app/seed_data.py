@@ -29,9 +29,11 @@ import bcrypt
 from app.database import SessionLocal
 from app.models import (
     User, GovService, PrerequisiteRule,
-    UserService, Progress, ServiceStatus, StepStatus
+    UserService, Progress, ServiceStatus, StepStatus,
+    GovernmentOffice,
 )
 from app.nepali_content import SERVICE_NE, SEED_STEPS_NE
+from app.office_seed_data import GOVERNMENT_OFFICES
 
 def hash_password(plain: str) -> str:
     """Hash a plain-text password using bcrypt."""
@@ -470,6 +472,23 @@ def seed_services(db) -> dict:
     return service_map
 
 
+def seed_government_offices(db):
+    """Upsert the curated government-office catalog by name (idempotent)."""
+    print("\n[OFFICES] Seeding government offices...")
+    for data in GOVERNMENT_OFFICES:
+        name = data["name"]
+        existing = db.query(GovernmentOffice).filter_by(name=name).first()
+        if existing:
+            for field, value in data.items():
+                setattr(existing, field, value)
+            print(f"   [UPDATED] '{name}'")
+        else:
+            db.add(GovernmentOffice(**data))
+            print(f"   [ADDED] '{name}'")
+    db.commit()
+    print(f"   [OK] {len(GOVERNMENT_OFFICES)} office(s) in catalog")
+
+
 def seed_prerequisite_rules(db, service_map: dict):
     """Rebuild prerequisite rules to match the current dependency chain."""
     print("\n[RULES] Rebuilding prerequisite rules...")
@@ -625,6 +644,7 @@ def run_seed():
     try:
         service_map = seed_services(db)
         seed_prerequisite_rules(db, service_map)
+        seed_government_offices(db)
         test_user   = seed_test_user(db)
         seed_user_services(db, test_user, service_map)
 

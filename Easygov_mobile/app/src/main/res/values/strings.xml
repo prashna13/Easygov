@@ -78,6 +78,12 @@
     <string name="login">Login</string>
     <string name="signing_in">Signing in...</string>
     <string name="no_account_signup">Don\'t have an account? Sign up</string>
+    <string name="google_sign_in_divider">OR</string>
+    <string name="google_sign_in_continue">Continue with Google</string>
+    <string name="google_sign_in_signing">Signing in with Google...</string>
+    <string name="google_sign_in_error">Google Sign-In failed: %1$s</string>
+    <string name="google_sign_in_not_configured">Google Sign-In is not set up yet. Add your client ID in res/values/strings.xml (default_web_client_id).</string>
+    <string name="default_web_client_id">719298356296-re4s14t06dr4bdf7vu0m36oig4uqv9bb.apps.googleusercontent.com</string>
     <string name="account_preview">Account Preview</string>
     <string name="account_preview_msg">Saved applications, service history, and recommendation tuning will appear here after sign in.</string>
     <string name="join_easygov">Join EasyGov</string>
@@ -160,4 +166,21 @@
     <string name="doc_retry">Retry</string>
     <string name="doc_tags_label">Tags</string>
     <string name="doc_unknown_name">Document</string>
+
+    <!-- Nearby offices -->
+    <string name="office_find_nearest">Find Nearest Office</string>
+    <string name="office_nearby_title">Nearby Offices</string>
+    <string name="office_nearby_for">for %1$s</string>
+    <string name="office_local_offices">Government offices near you that provide this service. Tap Directions for navigation in Google Maps.</string>
+    <string name="office_directions">Directions</string>
+    <string name="office_loading">Finding nearby offices...</string>
+    <string name="office_location_unavailable">Could not determine your location. Make sure location services (GPS) are on, then try again.</string>
+    <string name="office_permission_denied">Location access is needed to find nearby offices.</string>
+    <string name="office_permission_denied_hint">Grant location access so EasyGov can show government offices near you.</string>
+    <string name="office_grant_access">Grant Location Access</string>
+    <string name="office_open_settings">Open Settings</string>
+    <string name="office_empty">No offices found within %1$s km. Try again or check back later.</string>
+    <string name="office_error">Could not load nearby offices. Please try again.</string>
+    <string name="office_radius_hint">Showing offices within %1$s km</string>
+    <string name="office_retry">Retry</string>
 </resources>

@@ -72,6 +72,10 @@ class ServiceDetailFragment : Fragment() {
             }
         }
 
+        view.findViewById<View>(R.id.btnFindNearestOffice).setOnClickListener {
+            openNearbyOffices(title)
+        }
+
         if (serviceId > 0) {
             val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
             if (authToken != null) {
@@ -163,6 +167,26 @@ class ServiceDetailFragment : Fragment() {
             .replace(R.id.fragmentContainer, fragment)
             .addToBackStack(null)
             .commit()
+    }
+
+    private fun openNearbyOffices(title: String) {
+        val fragment = NearbyOfficesFragment.newInstance(nearbyServiceType(title), title)
+        // In the real app the host has R.id.fragmentContainer; in fragment-testing
+        // the host only exposes android.R.id.content.
+        val containerId =
+            if (requireActivity().findViewById<View>(R.id.fragmentContainer) != null) R.id.fragmentContainer
+            else android.R.id.content
+        parentFragmentManager.beginTransaction()
+            .replace(containerId, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+    private fun nearbyServiceType(title: String): String = when {
+        title.contains("Passport", ignoreCase = true) -> "passport"
+        title.contains("NID", ignoreCase = true) -> "nid"
+        title.contains("Driving", ignoreCase = true) || title.contains("License", ignoreCase = true) -> "driving_license"
+        else -> "citizenship"
     }
 
     private fun applyPrerequisiteState(

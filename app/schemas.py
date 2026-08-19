@@ -25,6 +25,11 @@ class UserLogin(BaseModel):
     password: str
 
 
+class GoogleLogin(BaseModel):
+    """Google Sign-In payload — the ID token produced by the Android app."""
+    id_token: str
+
+
 class UserOut(BaseModel):
     id: int
     email: str
@@ -167,3 +172,26 @@ class DocumentUpdate(BaseModel):
     label: Optional[str] = None
     tags: Optional[str] = None
     description: Optional[str] = None
+
+
+# ── GOVERNMENT OFFICES (Find Nearest Office) ─────────────────────────────────
+
+class GovernmentOfficeOut(BaseModel):
+    """A government office returned by the nearby-offices endpoint."""
+    id: int
+    name: str
+    office_type: str
+    service_tags: List[str] = []
+    district: str
+    address: str
+    latitude: float
+    longitude: float
+    phone: Optional[str] = None
+    hours: Optional[str] = None
+
+    # Straight-line (haversine) distance from the query point, in kilometres.
+    # Only populated by the /offices/nearby endpoint.
+    distance_km: Optional[float] = None
+
+    class Config:
+        from_attributes = True

@@ -5,6 +5,7 @@ import com.example.easygov.ChatRequest
 import com.example.easygov.ChatResponse
 import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.DashboardResponse
+import com.example.easygov.model.Office
 import com.example.easygov.model.OnboardingRequest
 import com.example.easygov.model.OnboardingResponse
 import com.example.easygov.model.ServiceDetailResponse
@@ -23,6 +24,7 @@ import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.Part
 import retrofit2.http.Path
+import retrofit2.http.Query
 
 /**
  * Retrofit interface for EasyGov API endpoints.
@@ -140,6 +142,14 @@ interface ApiService {
     ): Call<com.example.easygov.model.TokenResponse>
 
     /**
+     * Authenticates (or auto-registers) a user via a Google Sign-In ID token.
+     */
+    @POST("/auth/google")
+    fun googleLogin(
+        @Body request: com.example.easygov.model.GoogleLoginRequest
+    ): Call<com.example.easygov.model.TokenResponse>
+
+    /**
      * Uploads a document (image/PDF) into the user's document vault.
      * The label and tags are sent as multipart form fields.
      */
@@ -169,6 +179,22 @@ interface ApiService {
         @Header("Authorization") authToken: String,
         @Path("documentId") documentId: Int
     ): Call<ResponseBody>
+
+    /**
+     * Returns the government offices serving `serviceType` within `radius` km
+     * of (`lat`, `lng`), sorted nearest-first.
+     *
+     * Public endpoint — pass null authToken when the user is not signed in
+     * (Retrofit omits null @Header values).
+     */
+    @GET("/api/v1/offices/nearby")
+    fun getNearbyOffices(
+        @Header("Authorization") authToken: String?,
+        @Query("service_type") serviceType: String,
+        @Query("lat") lat: Double,
+        @Query("lng") lng: Double,
+        @Query("radius") radius: Double
+    ): Call<List<Office>>
 
     /**
      * Downloads the raw file bytes for a document.

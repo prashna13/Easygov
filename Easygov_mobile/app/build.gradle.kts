@@ -44,13 +44,19 @@ dependencies {
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
     implementation("com.google.android.material:material:1.12.0")
+
+    // Google Sign-In ("Continue with Google")
+    implementation(libs.play.services.auth)
     // Networking & JSON Parsing
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // Markdown text rendering
     implementation("io.noties.markwon:core:4.6.2")
-    testImplementation(libs.junit)
+testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.test.core)
+    androidTestImplementation(libs.androidx.test.rules)
+    androidTestImplementation(libs.androidx.test.runner)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
 }

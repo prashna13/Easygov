@@ -9,10 +9,12 @@ Tables:
   - prerequisite_rules : Defines which service must be done before another
   - user_services      : Tracks each user's engagement with each service
   - progress           : Step-level checklist within a user_service
+  - documents          : User-uploaded files in their private document vault
+  - government_offices : Static catalog of real Nepali government offices
 """
 
 from sqlalchemy import (
-    Column, Integer, String, Boolean, DateTime, Date,
+    Column, Integer, String, Boolean, DateTime, Date, Float,
     ForeignKey, Text, UniqueConstraint, CheckConstraint, Enum as SAEnum
 )
 from sqlalchemy.orm import relationship
@@ -66,6 +68,7 @@ class User(Base):
     id                 = Column(Integer, primary_key=True, index=True, autoincrement=True)
     full_name          = Column(String(200), nullable=False)
     email              = Column(String(255), unique=True, nullable=False, index=True)
+    google_id          = Column(String(255), unique=True, nullable=True)
     phone              = Column(String(20), nullable=True)
     password_hash      = Column(String(255), nullable=False)
     citizenship_number = Column(String(50), unique=True, nullable=True)
@@ -366,3 +369,48 @@ class Document(Base):
 
     def __repr__(self):
         return f"<Document id={self.id} user={self.user_id} label='{self.label}'>"
+
+
+# ── TABLE 7: government_offices ────────────────────────────────────────────────
+
+class GovernmentOffice(Base):
+    """
+    A curated catalog of real Nepali government offices where citizens
+    complete the services EasyGov explains. This is static seed data — NOT a
+    live Google Places search. It powers the "Find Nearest Office" feature.
+
+    Fields:
+        id            : Auto-increment primary key
+        name          : Official office name (e.g. "Kathmandu District Administration Office")
+        name_ne       : Nepali name (optional, for bilingual displays)
+        office_type   : Short category, e.g. "District Administration Office",
+                        "Department of Passports Office", "DoNIDCR Enrollment Center",
+                        "Department of Transport Management"
+        service_tags  : Comma-separated keys the /offices/nearby endpoint filters on.
+                        Values align with service keys/categories used by the app:
+                        citizenship, nid, passport, driving_license, identity, transport
+        district      : Administrative district (e.g. "Kathmandu")
+        address       : Street address (e.g. "Tripureshwor, Kathmandu")
+        latitude      : WGS84 latitude
+        longitude     : WGS84 longitude
+        phone         : Published contact number (optional)
+        hours         : Published service hours (optional, e.g. "10:00–17:00 Sun–Fri")
+        is_active     : Soft-enable flag (False = hidden from results)
+    """
+    __tablename__ = "government_offices"
+
+    id           = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    name         = Column(String(300), nullable=False, unique=True, index=True)
+    name_ne      = Column(String(300), nullable=True)
+    office_type  = Column(String(200), nullable=False)
+    service_tags = Column(String(500), nullable=False, default="")
+    district     = Column(String(150), nullable=False, index=True)
+    address      = Column(String(500), nullable=False)
+    latitude     = Column(Float, nullable=False)
+    longitude    = Column(Float, nullable=False)
+    phone        = Column(String(50), nullable=True)
+    hours        = Column(String(100), nullable=True)
+    is_active    = Column(Boolean, default=True, nullable=False)
+
+    def __repr__(self):
+        return f"<GovernmentOffice id={self.id} name='{self.name}' district='{self.district}'>"

@@ -18,3 +18,10 @@ passlib[bcrypt]
 python-jose[cryptography]
 email-validator
 
+# ── Authentication (Google Sign-In) ─────────────────
+google-auth
+
+# ── Testing (dev) ─────────────────────────────────
+pytest
+httpx
+

@@ -927,6 +927,18 @@ def home():
     return {"status": "EasyGov API is Running"}
 
 
+# ── GOVERNMENT OFFICES (Find Nearest Office) ─────────────────────────────────
+from app.offices import router as offices_router  # noqa: E402
+
+app.include_router(offices_router)
+
+
+# ── GOOGLE SIGN-IN (Continue with Google) ────────────────────────────────────
+from app.google_auth import router as google_auth_router  # noqa: E402
+
+app.include_router(google_auth_router)
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

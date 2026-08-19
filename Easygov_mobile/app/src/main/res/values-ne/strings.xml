@@ -77,6 +77,12 @@
     <string name="login">लगइन</string>
     <string name="signing_in">साइन इन हुँदैछ...</string>
     <string name="no_account_signup">खाता छैन? साइन अप गर्नुहोस्</string>
+    <string name="google_sign_in_divider">वा</string>
+    <string name="google_sign_in_continue">Google बाट जारी राख्नुहोस्</string>
+    <string name="google_sign_in_signing">Google बाट साइन इन हुँदैछ...</string>
+    <string name="google_sign_in_error">Google साइन-इन असफल: %1$s</string>
+    <string name="google_sign_in_not_configured">Google साइन-इन अझै सेटअप गरिएको छैन। res/values/strings.xml (default_web_client_id) मा आफ्नो क्लाइन्ट आईडी थप्नुहोस्।</string>
+    <string name="default_web_client_id">719298356296-re4s14t06dr4bdf7vu0m36oig4uqv9bb.apps.googleusercontent.com</string>
     <string name="account_preview">खाता पूर्वावलोकन</string>
     <string name="account_preview_msg">साइन इन गरेपछि सुरक्षित आवेदनहरू, सेवा इतिहास, र सिफारिस समायोजन यहाँ देखा पर्नेछन्।</string>
     <string name="join_easygov">EasyGov मा सामेल हुनुहोस्</string>
@@ -159,4 +165,21 @@
     <string name="doc_retry">पुनः प्रयास गर्नुहोस्</string>
     <string name="doc_tags_label">ट्यागहरू</string>
     <string name="doc_unknown_name">कागजात</string>
+
+    <!-- Nearby offices -->
+    <string name="office_find_nearest">नजिकको कार्यालय खोज्नुहोस्</string>
+    <string name="office_nearby_title">नजिकका कार्यालयहरू</string>
+    <string name="office_nearby_for">%1$s का लागि</string>
+    <string name="office_local_offices">यो सेवा प्रदान गर्ने तपाईंको नजिकका सरकारी कार्यालयहरू। नेभिगेसनका लागि निर्देशनमा ट्याप गर्नुहोस्।</string>
+    <string name="office_directions">निर्देशन</string>
+    <string name="office_loading">नजिकका कार्यालयहरू खोज्दैछ...</string>
+    <string name="office_location_unavailable">तपाईंको स्थान निर्धारण गर्न सकिएन। कृपया स्थान सेवा (GPS) खोलेर फेरि प्रयास गर्नुहोस्।</string>
+    <string name="office_permission_denied">नजिकका कार्यालयहरू खोज्न स्थान पहुँच आवश्यक छ।</string>
+    <string name="office_permission_denied_hint">ठेगाना सेवा नजिकका सरकारी कार्यालयहरू देखाउन आवश्यक छ भनी अनुमति दिनुहोस्।</string>
+    <string name="office_grant_access">स्थान पहुँच अनुमति दिनुहोस्</string>
+    <string name="office_open_settings">सेटिङहरू खोल्नुहोस्</string>
+    <string name="office_empty">%1$s किमीभित्र कुनै कार्यालय भेटिएन। फेरि प्रयास गर्नुहोस्।</string>
+    <string name="office_error">नजिकका कार्यालयहरू लोड गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।</string>
+    <string name="office_radius_hint">%1$s किमीभित्रका कार्यालयहरू देखाउँदै</string>
+    <string name="office_retry">पुनः प्रयास गर्नुहोस्</string>
 </resources>

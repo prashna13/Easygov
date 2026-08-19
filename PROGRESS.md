@@ -24,7 +24,7 @@
 | Backend API | Python · FastAPI · Uvicorn |
 | AI / RAG | LangChain · ChromaDB · HuggingFace Embeddings · OpenRouter (gpt-oss-120b) |
 | ORM / DB | SQLAlchemy 2.x · SQLite (`db_storage/easygov.db`) |
-| Auth | JWT via `python-jose` · direct bcrypt password hashing |
+| Auth | JWT via `python-jose` · direct bcrypt password hashing · **Google Sign-In (`google-auth` + `play-services-auth`)** |
 | Dev web UI | Streamlit |
 | Mobile | Android (Kotlin/Java) · Retrofit2 · Markwon · Material Design |
 | Embedding model | `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` |
@@ -47,9 +47,13 @@ EasyGov_project/
 │   ├── seed_data.py            # [DONE] Seed script (re-runnable, skip-on-duplicate)
 │   ├── nepali_content.py       # [DONE] Generated Nepali translations (SERVICE_NE, STEP_TEMPLATES_NE, SEED_STEPS_NE)
 │   ├── translate_seed.py       # [DONE] LLM translation generator → nepali_content.py
-│   ├── main.py                 # FastAPI app — /ask, auth, dashboard, onboarding, service detail, application progress endpoints
+│   ├── main.py                 # FastAPI app — /ask, auth, dashboard, onboarding, service detail, application progress, offices endpoints
 │   ├── ingest_data.py          # PDF/MD ingestion pipeline → ChromaDB
 │   ├── frontend.py             # Streamlit web UI (dev/demo only)
+│   ├── geo.py                  # [DONE] Haversine distance + find_nearby_offices (used by /api/v1/offices/nearby)
+│   ├── offices.py              # [DONE] Nearby-offices FastAPI router (GET /api/v1/offices/nearby)
+│   ├── google_auth.py          # [DONE] Google ID-token verification + POST /auth/google router (auto-creates/links users by email)
+│   ├── office_seed_data.py     # [DONE] Static curated catalog of 34 Nepali government offices (DAOs, passport/NID centers, DOTM, muncipalities)
 │   └── db_handeler.py          # [EMPTY PLACEHOLDER] — not implemented yet
 ├── db_storage/
 │   ├── easygov.db              # [DONE] Main SQLite database (users, services, progress)
@@ -64,11 +68,13 @@ EasyGov_project/
         │   ├── MainActivity.kt          # [DONE] Bottom nav: Chat / Dashboard / Profile
         │   ├── ChatFragment.kt          # [DONE] RAG chat + Markwon, history & new-chat buttons
         │   ├── DashboardFragment.kt     # [DONE] Uses stored Bearer token from SessionManager, real DB data
-        │   ├── LoginFragment.kt         # [DONE] Calls POST /auth/login, saves JWT via SessionManager
+        │   ├── LoginFragment.kt         # [DONE] Calls POST /auth/login + Google Sign-In (POST /auth/google), saves JWT via SessionManager
         │   ├── RegisterFragment.kt      # [DONE] Calls POST /auth/register, auto-login after signup
         │   ├── ProfileFragment.kt       # [DONE] Full profile from /auth/me + "My Applications & Progress" list
         │   ├── ApplicationsAdapter.kt   # [DONE] Profile application cards (title/status/progress %) → open tracker
-        │   ├── ServiceDetailFragment.kt # [DONE] Detail + guide + prereq blocking; Apply Now starts an application
+        │   ├── ServiceDetailFragment.kt # [DONE] Detail + guide + prereq blocking; Apply Now starts an application; "Find Nearest Office" button → NearbyOfficesFragment
+        │   ├── NearbyOfficesFragment.kt # [DONE] Finds nearest offices — on-demand coarse location (permission + single-fix with timeout), API call, list/empty/error/permission states, Directions → Google Maps
+        │   ├── OfficeAdapter.kt        # [DONE] Nearby-office cards (name/type/address/meta/distance + Directions button)
         │   ├── ApplicationProgressFragment.kt # [DONE] Step checklist + progress bar; ticks steps complete
         │   ├── ProgressStepAdapter.kt    # [DONE] Checklist adapter (current step tappable only)
         │   ├── DashboardAdapter.kt
@@ -82,10 +88,11 @@ EasyGov_project/
         │   │   ├── GovService.kt
         │   │   ├── DashboardResponse.kt
         │   │   ├── OnboardingModels.kt    # [DONE] Onboarding request/response + ServiceDetailResponse (includes application)
+        │   │   ├── Office.kt             # [DONE] GovernmentOfficeOut DTO (with distance_km)
         │   │   ├── ApplicationModels.kt   # [DONE] ApplicationProgress + ProgressStep DTOs
-        │   │   └── AuthModels.kt        # [DONE] LoginRequest, RegisterRequest, TokenResponse, UserOut
+        │   │   └── AuthModels.kt        # [DONE] LoginRequest, RegisterRequest, GoogleLoginRequest, TokenResponse, UserOut
         │   └── network/
-        │       ├── ApiService.kt        # [DONE] Endpoints: dashboard, onboarding, services, apply, applications, steps, /ask, /chat/history, /auth/*
+        │       ├── ApiService.kt        # [DONE] Endpoints: dashboard, onboarding, services, apply, applications, steps, /ask, /chat/history, /auth/*, documents, offices/nearby
         │       └── RetrofitClient.kt    # [DONE] Base URL: http://10.0.2.2:8000/ (Emulator standard)
         └── res/layout/
             ├── activity_main.xml
@@ -101,6 +108,8 @@ EasyGov_project/
             ├── bottom_sheet_chat_history.xml
             ├── item_dashboard_card.xml
             ├── item_chat_history.xml
+            ├── item_office.xml               # [DONE] Nearby-office card (Directions button)
+            ├── fragment_nearby_offices.xml   # [DONE] Nearby-offices screen (header, list, loading/empty/error/permission states)
             └── values-ne/strings.xml     # [DONE] Full Nepali UI strings
 ```
 
@@ -126,6 +135,7 @@ EasyGov_project/
 | POST | `/ask` | LIVE | RAG chatbot — question → ChromaDB → LLM → answer + sources; detects query language (`langdetect`) and answers in the query's language (Nepali/English) |
 | POST | `/auth/register` | LIVE | Creates user, hashes password with bcrypt, returns JWT token |
 | POST | `/auth/login` | LIVE | Verifies bcrypt password, returns JWT token + user profile |
+| POST | `/auth/google` | LIVE | Google Sign-In — verifies `{id_token}` audience/signature via `google-auth`, auto-creates account (or links to existing email), returns JWT token + profile; requires `GOOGLE_OAUTH_WEB_CLIENT_ID` env |
 | GET | `/auth/me` | LIVE | Protected — full profile: name, email, phone, citizenship no., province, age, DOB, address, onboarding status |
 | GET | `/api/v1/applications` | LIVE | Protected — all user applications (title, status, progress %, steps), newest first; drives profile progress list |
 | GET | `/api/v1/dashboard` | LIVE | Real DB query from SQLite `gov_services` — 4 active services with official guidance (personalizes if Bearer token present) |
@@ -136,6 +146,7 @@ EasyGov_project/
 | POST | `/api/v1/applications/{application_id}/steps/{step_number}/complete` | LIVE | Marks a step COMPLETED, advances next pending step; completes application when all steps done |
 | GET | `/chat/history` | LIVE | Protected — returns saved chat history for the authenticated user |
 | GET | `/api/v1/user/progress` | NOT BUILT | Replaced by `/api/v1/applications` (aggregate) + `/api/v1/applications/{id}` (detail) |
+| GET | `/api/v1/offices/nearby` | LIVE | Public — curated government offices serving `service_type` (citizenship/nid/passport/driving_license) within `radius` km (default 10, max 100) of `lat`/`lng`, sorted nearest-first with haversine `distance_km`; static seeded catalog (no live Google Places) |
 | PATCH | `/api/v1/user/services/{service_id}/progress/{step_id}` | NOT BUILT | Superseded by `POST /api/v1/applications/{id}/steps/{n}/complete` (build separately if desired) |
 
 **Language support**: All user-facing endpoints (`/api/v1/dashboard`, `/api/v1/onboarding`, `/api/v1/services/{id}`, `/api/v1/services/{id}/apply`, `/api/v1/applications`, `/api/v1/applications/{id}`, `/api/v1/applications/{id}/steps/{n}/complete`) accept an optional `lang=en|ne` query param (default `en`). Nepali content is stored in `gov_services.title_ne/category_ne/description_ne/guidance_ne` and `progress.step_name_ne/step_description_ne`; the Android `RetrofitClient` interceptor appends `lang` automatically from the selected app language. `/ask` and `/chat/history` are unaffected.
@@ -175,6 +186,10 @@ EasyGov_project/
 - [x] **Android Locale Switching**: `LocaleManager` (SharedPreferences) + `EasyGovApp` Application (applies stored locale on launch) + Retrofit lang interceptor; `values-ne/strings.xml` full translation; Profile language selector (`MaterialButtonToggleGroup`) switches app-wide via `AppCompatDelegate.setApplicationLocales`; all layouts/kotlin files converted to `@string` resources; APK rebuilt and verified on emulator (UI + API content + persistence across restart)
 - [x] **Document Vault (Backend)**: `POST/GET /api/v1/documents`, `GET /api/v1/documents/{id}/download`, `DELETE /api/v1/documents/{id}`; `documents` table + `documents/{user_id}/` file storage (JPEG/PNG/WEBP/HEIC/PDF, max 10 MB); upload accepts `label`, `tags`, optional `description`; label required/validated; ownership enforced
 - [x] **Document Vault (Android)**: New "Documents" bottom-nav tab; `DocumentsFragment` + `DocumentsAdapter` — upload via system picker → label/tags/description dialog → multipart upload; list shows label/filename/tags/size·date; detail sheet (View image preview / open PDF via FileProvider, Delete with confirm); persists across restarts; APK rebuilt and verified end-to-end on emulator (upload → DB+file → list → view → delete → re-upload)
+- [x] **Find Nearest Office (Backend)**: `GovernmentOffice` model + migration; `app/geo.py` (haversine + radius filtering/sorting); `GET /api/v1/offices/nearby` router; `office_seed_data.py` seeds 34 real Nepali offices (DAOs, passport/NID centers, DOTM, municipalities) with Devanagari `name_ne`; seed upserts by name; 25 pytest tests pass (distance math, filtering, radius, case-insensitivity, API validation/empty/inactive)
+- [x] **Find Nearest Office (Android)**: "Find Nearest Office" button on the service detail screen opens `NearbyOfficesFragment`; requests coarse location on demand only (no background tracking) with permission-denied (incl. permanent → app settings) and location-unavailable states; calls `/api/v1/offices/nearby` (null auth token → no header when signed out) and lists offices sorted nearest-first with distance; each card has a **Directions** button that launches Google Maps turn-by-turn navigation; EN + NE strings; 3 Espresso tests (button visible, button→nearby-screen flow, nearby header) pass on the emulator (Espresso upgraded 3.5.1→3.7.0 + test stack for Android 15+/17 support; host-activity pattern replaced fragment-testing due to its androidx.test:core 1.5.0 pin)
+- [x] **Google Sign-In (Backend)**: `app/google_auth.py` — `POST /auth/google` verifies the Android ID token's signature + audience with the official `google-auth` library (`GOOGLE_OAUTH_WEB_CLIENT_ID` env, returns 401 if unconfigured), rejects unverified emails, auto-creates the account (random-secret bcrypt `password_hash` keeps the NOT-NULL column safe), links a first-time Google sign-in to an existing same-email password account, returns the standard JWT `TokenResponse`; `users.google_id` column (nullable, unique) added + migrated; 8 pytest tests (create, link-by-email, match-by-google_id, unconfigured/invalid/unverified-email 401s, deactivated 403, missing field 422) — full suite now **33 passed**
+- [x] **Google Sign-In (Android)**: `play-services-auth` added; "Continue with Google" outlined button + OR divider on `fragment_login.xml` (EN + NE strings); `LoginFragment` builds a `GoogleSignInOptions` from the `default_web_client_id` placeholder (tapping while it's the `YOUR_...` placeholder shows a "not set up yet" toast instead of launching), signs out then launches the account chooser, sends the returned ID token to `/auth/google`, and reuses one shared `onAuthSuccess` for token save + dashboard navigation; APK rebuilt (8.1 MB) and verified on the emulator (button renders in both locales, tap fires the placeholder-guard toast, live endpoint returns the intended 401 "not configured")
 
 ---
 
@@ -183,6 +198,11 @@ EasyGov_project/
 ### Medium Priority - Backend DB Progress Endpoints
 - [ ] Resubmit/retry flow for `REJECTED` applications
 - [ ] Edit profile endpoint (`PATCH /auth/me`) so users can update phone/address/DOB from the app
+
+### Google Sign-In — fill in real credentials (scaffold shipped with placeholders)
+- [ ] Register an OAuth client in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) — an **Android** client (`com.example.easygov`, with the release/debug SHA-1 from the signing keystore) plus a **Web** client (for the server-side audience check); the Web client ID goes into `default_web_client_id` in `Easygov_mobile/app/src/main/res/values/strings.xml` and into `GOOGLE_OAUTH_WEB_CLIENT_ID` in the backend `.env`
+- [ ] Add a Google account to the emulator (Settings → Accounts) and re-run the end-to-end flow
+- [ ] (Optional) Migrate `LoginFragment` off the deprecated `GoogleSignIn` API to Credential Manager / Google Identity Services
 
 ### Medium Priority - Android UI
 - [ ] "My Applications" section on the **dashboard** (currently on Profile screen) so started applications are visible without switching tabs
@@ -226,3 +246,9 @@ EasyGov_project/
 | 2026-08-16 | **Document vault**: backend endpoints + `documents` table + per-user file storage; Android `DocumentsFragment`/`DocumentsAdapter` + Documents nav tab + upload/view/delete UI; APK built (7.4 MB) |
 | 2026-08-16 | Verified document vault end-to-end on emulator: upload via picker → dialog (label/tags/desc) → stored in `db_storage/documents/{user_id}/` + `easygov.db`; list, detail sheet, image view, delete-with-confirm all work; survives restart |
 | 2026-08-16 | **Bugfix**: upload dialog's optional Description field was never read or sent — added `etDocDescription` wiring + `@Part("description")` in `ApiService.uploadDocument`; rebuilt, re-verified description now persists and displays |
+| 2026-08-17 | **Find Nearest Office — backend**: `GovernmentOffice` model + migration; `app/geo.py` haversine; `app/offices.py` router (`GET /api/v1/offices/nearby`, radius 1–100 km); `app/office_seed_data.py` (34 real offices); seeding wired into `seed_data.py`; pytest added (`tests/conftest.py`, `test_geo.py`, `test_offices_api.py`) — 25 tests pass |
+| 2026-08-17 | **Find Nearest Office — Android**: `Office.kt`, `ApiService.getNearbyOffices` (nullable auth header), `OfficeAdapter` + `item_office.xml`, `NearbyOfficesFragment` + layout (permission/location/empty/error states, single-fix + 15s timeout, Directions → `google.navigation:` intent with `geo:` fallback), button on `fragment_service_detail.xml` + `ServiceDetailFragment` handler with service-title→tag mapping; `ACCESS_COARSE_LOCATION` permission; EN + NE strings; APK rebuilt |
+| 2026-08-17 | Verified Find Nearest Office end-to-end on emulator (Medium_Phone, Android 17): service detail → tap "Find Nearest Office" → approximate-location permission dialog → "While using the app" → list of nearby DAOs/municipal offices sorted by distance (0.7/1.7/2.2 km…) → Directions launches Google Maps navigation. Debugged `adb emu geo fix` arg order (takes longitude FIRST — wrong order put the "location" in the Arctic → empty result) |
+| 2026-08-17 | **Espresso tests for the flow**: upgraded test stack for Android 15/17 (Espresso 3.5.1→3.7.0, ext-junit 1.1.5→1.3.0, rules/runner/core →1.7.0) — old Espresso crashed with `NoSuchMethodException: InputManager.getInstance`; replaced `fragment-testing` (pins androidx.test:core 1.5.0) with a debug-source-set `FragmentTestHostActivity` + `ActivityScenario`; `NearbyOfficesTest` (3 tests: button shown, tap→nearby screen, nearby header) all pass on device |
+| 2026-08-18 | **Google Sign-In — backend**: `app/google_auth.py` router + `google-auth` dependency; `users.google_id` column added + migrated; `POST /auth/google` verifies ID token (audience `GOOGLE_OAUTH_WEB_CLIENT_ID`), auto-creates/links users, returns JWT `TokenResponse`; 8 new pytest tests → suite at 33 passed |
+| 2026-08-18 | **Google Sign-In — Android**: `play-services-auth` + "Continue with Google" button (outlined, with OR divider) on login; `LoginFragment` launches account chooser and POSTs the ID token to `/auth/google`; placeholder `default_web_client_id` guard shows a setup toast; shared `onAuthSuccess` with password login; APK rebuilt (8.1 MB); verified on emulator — button renders (EN + NE), tap fires the guard toast (dumpsys window shows the Toast window), live endpoint returns 401 "not configured" until real client IDs are added |
