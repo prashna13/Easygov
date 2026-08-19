@@ -142,6 +142,18 @@ class ChatHistoryOut(BaseModel):
         from_attributes = True
 
 
+# ── RAG CHATBOT (POST /ask) ───────────────────────────────────────────────────
+
+class AskResponse(BaseModel):
+    """Concise chatbot answer, optionally pointing to a full service guide."""
+    answer: str
+    sources: List[str] = []
+    guide_link: Optional[str] = None
+    guide_service_id: Optional[int] = None
+    # Only present when the request had debug=True.
+    retrieved_chunks: Optional[List[dict]] = None
+
+
 class DashboardOut(BaseModel):
     user_name: str
     services: List[GovServiceOut]

@@ -15,15 +15,40 @@ import java.util.concurrent.TimeUnit
  * (read from [LocaleManager]) so the server returns localized content.
  */
 object RetrofitClient {
-    // For Android Emulator, use "http://10.0.2.2:8000/" to connect to host PC localhost.
-    // For a physical Android phone on local Wi-Fi, use your laptop's IP e.g. "http://192.168.1.72:8000/"
-    private const val BASE_URL = "http://10.0.2.2:8000/"
+    // Android Emulator reaches the host PC's localhost via 10.0.2.2.
+    // On a physical phone (same Wi-Fi), change the base URL from the app's
+    // Login or Profile screen to your PC's LAN IP, e.g. "http://192.168.1.72:8000/".
+    private const val DEFAULT_BASE_URL = "http://10.0.2.2:8000/"
+    private const val PREFS_NAME = "easygov_server_prefs"
+    private const val KEY_BASE_URL = "base_url"
 
     private lateinit var appContext: Context
 
     /** Call once from the Application class with the application context. */
     fun init(context: Context) {
         appContext = context.applicationContext
+    }
+
+    /** The current backend base URL (persisted; defaults to the emulator host). */
+    fun getBaseUrl(): String {
+        val stored = appContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .getString(KEY_BASE_URL, null)
+        return stored?.takeIf { it.isNotBlank() } ?: DEFAULT_BASE_URL
+    }
+
+    /**
+     * Persists a new backend base URL. Takes effect immediately — the next
+     * call to [apiService] rebuilds with the new address.
+     */
+    fun setBaseUrl(url: String) {
+        val normalized = url.trim().removeSuffix("/") + "/"
+        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_BASE_URL, normalized).apply()
+        synchronized(this) {
+            currentBaseUrl = null
+            cachedApiService = null
+        }
     }
 
     private val okHttpClient by lazy {
@@ -43,15 +68,29 @@ object RetrofitClient {
             .build()
     }
 
-    private val retrofit: Retrofit by lazy {
-        Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-    }
+    @Volatile
+    private var currentBaseUrl: String? = null
 
-    val apiService: ApiService by lazy {
-        retrofit.create(ApiService::class.java)
-    }
+    @Volatile
+    private var cachedApiService: ApiService? = null
+
+    /** Lazy [ApiService] that rebuilds itself whenever the base URL changes. */
+    val apiService: ApiService
+        get() {
+            val base = getBaseUrl()
+            if (cachedApiService == null || base != currentBaseUrl) {
+                synchronized(this) {
+                    if (cachedApiService == null || base != currentBaseUrl) {
+                        currentBaseUrl = base
+                        cachedApiService = Retrofit.Builder()
+                            .baseUrl(base)
+                            .client(okHttpClient)
+                            .addConverterFactory(GsonConverterFactory.create())
+                            .build()
+                            .create(ApiService::class.java)
+                    }
+                }
+            }
+            return cachedApiService!!
+        }
 }

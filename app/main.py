@@ -32,13 +32,16 @@ from app.models import (
 )
 from app.schemas import (
     UserRegister, UserLogin, UserOut, TokenResponse,
-    DashboardOut, GovServiceOut, ChatHistoryOut,
+    DashboardOut, GovServiceOut, ChatHistoryOut, AskResponse,
     OnboardingRequest, OnboardingResponse, ServiceDetailOut,
     ApplicationOut, ProgressStepOut, DocumentOut, DocumentUpdate,
 )
 from app.auth_utils import (
     hash_password, verify_password, create_access_token,
     get_current_user, get_current_user_optional
+)
+from app.ask_utils import (
+    SYSTEM_PROMPTS, parse_ask_json, build_ask_response, resolve_guide_service,
 )
 
 load_dotenv()
@@ -495,7 +498,7 @@ def _user_doc_dir(user_id: int) -> Path:
 
 # ── RAG CHATBOT ENDPOINT ──────────────────────────────────────────────────────
 
-@app.post("/ask")
+@app.post("/ask", response_model=AskResponse)
 async def ask_government_bot(
     request: QueryRequest,
     db: Session = Depends(get_db),
@@ -543,24 +546,24 @@ async def ask_government_bot(
             getattr(d, "page_content", "") for d in docs if getattr(d, "page_content", "")
         )
 
-        strict_prompt = (
-            "You are EasyGov Nepal, a professional government assistant.\n"
-            f"Your task is to provide a structured, bulleted answer in {answer_lang} based on the CONTEXT provided.\n"
-            "Follow these rules:\n"
-            "1. If the context is in a different language than the answer language, translate it into the answer language.\n"
-            "2. Use bullet points and bold headers for readability.\n"
-            "3. If the context is missing specific details, state clearly: 'I couldn't find that specific info.' "
-            "(in the answer language)\n"
-            "4. Do not guess or use external knowledge.\n\n"
-            f"CONTEXT (might be in Nepali or English):\n{context}\n\n"
-            f"QUESTION:\n{user_question}\n"
-            f"ANSWER IN {answer_lang}:"
-        )
+        # Concise-answer system prompt (English or Nepali), which asks the LLM
+        # to reply in a strict JSON shape and point to the full guide instead of
+        # reproducing the whole procedure.
+        # NOTE: use .replace() (not str.format()) — the JSON template's braces
+        # would be interpreted as format fields and raise a KeyError.
+        prompt = SYSTEM_PROMPTS.get(answer_lang, SYSTEM_PROMPTS["ENGLISH"])
+        prompt = prompt.replace("{context}", context).replace("{question}", user_question)
 
-        llm_result = llm.invoke(strict_prompt)
-        answer_text = getattr(llm_result, "content", None) or str(llm_result)
+        llm_result = llm.invoke(prompt)
+        raw_answer = getattr(llm_result, "content", None) or str(llm_result)
+
+        # Parse the JSON reply, falling back to the raw text if malformed.
+        parsed = parse_ask_json(raw_answer)
+        answer_text = parsed.get("answer") or raw_answer
 
         if current_user is not None:
+            # Persist only the answer text (never the raw JSON) so history
+            # displays cleanly.
             assistant_message = ChatMessage(
                 user_id=current_user.id,
                 role="assistant",
@@ -570,11 +573,16 @@ async def ask_government_bot(
             db.commit()
             db.refresh(assistant_message)
 
+        # Map topic → the real gov_services row so the app can deep-link into
+        # the guide detail screen (ids are not sequential across the catalog).
+        guide_svc = resolve_guide_service(db, parsed.get("topic"))
+
         # Build the final response
-        response_data = {
-            "answer": answer_text,
-            "sources": sources
-        }
+        response_data = build_ask_response(
+            parsed,
+            sources,
+            guide_service_id=guide_svc.id if guide_svc else None,
+        )
 
         if request.debug:
             response_data["retrieved_chunks"] = [

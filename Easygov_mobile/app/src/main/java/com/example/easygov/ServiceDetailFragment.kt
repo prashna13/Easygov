@@ -87,6 +87,12 @@ class ServiceDetailFragment : Fragment() {
                         ) {
                             if (response.isSuccessful && response.body() != null) {
                                 val detail = response.body()!!
+                                // Refresh header from the (localized) API detail —
+                                // used when deep-linking from the chat guide chip.
+                                detail.service?.let { svc ->
+                                    view.findViewById<TextView>(R.id.tvDetailTitle).text = svc.title
+                                    view.findViewById<TextView>(R.id.tvDetailCategory).text = svc.category
+                                }
                                 showGuidance(view, detail.service?.guidance ?: guidance)
                                 applyPrerequisiteState(
                                     detail,

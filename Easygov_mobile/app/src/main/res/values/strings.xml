@@ -67,6 +67,8 @@
     <string name="send">Send</string>
     <string name="chat_history">Chat History</string>
     <string name="no_history">No history found</string>
+    <string name="chat_view_guide">View full guide</string>
+    <string name="chat_guide_title">Service Guide</string>
 
     <!-- Login / Register -->
     <string name="profile_title">Profile</string>
@@ -131,6 +133,13 @@
     <!-- Language selector -->
     <string name="lang_en">English</string>
     <string name="lang_ne">नेपाली</string>
+
+    <!-- Server address -->
+    <string name="server_address">Server address</string>
+    <string name="server_address_change">Change server address</string>
+    <string name="server_address_hint">e.g. http://192.168.1.72:8000/</string>
+    <string name="server_address_saved">Server address saved. Retry to reconnect.</string>
+    <string name="server_address_empty">Server address cannot be empty.</string>
 
     <!-- Item cards -->
     <string name="service_icon">Service Icon</string>

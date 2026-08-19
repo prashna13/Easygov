@@ -66,6 +66,14 @@ class ProfileFragment : Fragment() {
 
         setupLanguageSelector(view)
 
+        val tvServerUrl = view.findViewById<TextView>(R.id.tvServerUrl)
+        tvServerUrl.text = RetrofitClient.getBaseUrl()
+        view.findViewById<View>(R.id.btnEditServerUrl).setOnClickListener {
+            ServerUrlDialog.show(requireContext()) {
+                tvServerUrl.text = RetrofitClient.getBaseUrl()
+            }
+        }
+
         loadProfile()
         loadApplications()
     }

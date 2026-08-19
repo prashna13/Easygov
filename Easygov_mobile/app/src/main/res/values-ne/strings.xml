@@ -66,6 +66,8 @@
     <string name="send">पठाउनुहोस्</string>
     <string name="chat_history">च्याट इतिहास</string>
     <string name="no_history">कुनै इतिहास भेटिएन</string>
+    <string name="chat_view_guide">पूर्ण मार्गदर्शन हेर्नुहोस्</string>
+    <string name="chat_guide_title">सेवा गाइड</string>
 
     <!-- Login / Register -->
     <string name="profile_title">प्रोफाइल</string>
@@ -130,6 +132,13 @@
     <!-- Language selector -->
     <string name="lang_en">English</string>
     <string name="lang_ne">नेपाली</string>
+
+    <!-- Server address -->
+    <string name="server_address">सर्भर ठेगाना</string>
+    <string name="server_address_change">सर्भर ठेगाना परिवर्तन गर्नुहोस्</string>
+    <string name="server_address_hint">उदाहरण: http://192.168.1.72:8000/</string>
+    <string name="server_address_saved">सर्भर ठेगाना सुरक्षित गरियो। पुनः प्रयास गर्नुहोस्।</string>
+    <string name="server_address_empty">सर्भर ठेगाना खाली हुन सक्दैन।</string>
 
     <!-- Item cards -->
     <string name="service_icon">सेवा आइकन</string>

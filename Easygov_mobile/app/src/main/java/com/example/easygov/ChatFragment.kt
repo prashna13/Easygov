@@ -10,7 +10,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import io.noties.markwon.AbstractMarkwonPlugin
+import io.noties.markwon.LinkResolver
 import io.noties.markwon.Markwon
+import io.noties.markwon.MarkwonConfiguration
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -38,7 +41,14 @@ class ChatFragment : Fragment() {
         btnHistory = view.findViewById(R.id.btnHistory)
         btnNewChat = view.findViewById(R.id.btnNewChat)
 
-        markwon = Markwon.create(requireContext())
+        markwon = Markwon.builder(requireContext())
+            .usePlugin(object : AbstractMarkwonPlugin() {
+                override fun configureConfiguration(builder: MarkwonConfiguration.Builder) {
+                    // Intercept guide deep-links instead of opening a browser.
+                    builder.linkResolver(LinkResolver { view, link -> handleGuideLink(link) })
+                }
+            })
+            .build()
 
         btnSend.setOnClickListener {
             val queryText = etQuestion.text.toString().trim()
@@ -83,7 +93,18 @@ class ChatFragment : Fragment() {
                 override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
                     if (response.isSuccessful && response.body() != null) {
                         val systemReply = response.body()!!.answer
-                        chatAccumulator = chatAccumulator.replace("🤖 EasyGov: Typing...", "🤖 EasyGov:\n$systemReply")
+                        val guideLink = response.body()!!.guideLink
+                        val guideServiceId = response.body()!!.guideServiceId
+
+                        var replyMarkdown = "🤖 EasyGov:\n$systemReply"
+                        // Show a "View full guide" chip when the backend suggests one.
+                        if (guideLink != null && guideServiceId != null && guideServiceId > 0) {
+                            replyMarkdown += "\n\n[${getString(R.string.chat_view_guide)}](easygov://guide/$guideServiceId)"
+                        }
+                        chatAccumulator = chatAccumulator.replace(
+                            "🤖 EasyGov: Typing...",
+                            replyMarkdown
+                        )
                         updateChatDisplay()
                     } else {
                         revertTypingState("Error: ${response.code()}")
@@ -98,6 +119,28 @@ class ChatFragment : Fragment() {
 
     private fun updateChatDisplay() {
         markwon.setMarkdown(tvChatLog, chatAccumulator)
+    }
+
+    /** Parses a `easygov://guide/<serviceId>` deep-link and opens the guide. */
+    private fun handleGuideLink(link: String) {
+        if (!link.startsWith("easygov://guide/")) return
+        val serviceId = link.removePrefix("easygov://guide/").toIntOrNull() ?: return
+        openGuide(serviceId)
+    }
+
+    /** Reuses the same guide screen the Dashboard opens — no new screen. */
+    private fun openGuide(serviceId: Int) {
+        val detailFragment = ServiceDetailFragment.newInstance(
+            serviceId,
+            getString(R.string.chat_guide_title),
+            "",
+            null,
+            null
+        )
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, detailFragment)
+            .addToBackStack(null)
+            .commit()
     }
 
     private fun revertTypingState(errorMessage: String) {
