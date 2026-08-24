@@ -1,31 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_screen">
+    android:background="@drawable/bg_screen"
+    android:fillViewport="true">
 
     <LinearLayout
-        android:id="@+id/profileHeader"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_header_band"
         android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingTop="28dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="24dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:paddingStart="24dp"
+        android:paddingTop="40dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_icon_soft"
+            android:contentDescription="@string/app_name"
+            android:padding="18dp"
+            android:src="@drawable/ic_robot"
+            app:tint="@color/brand_light" />
 
         <TextView
             android:id="@+id/tvLoginTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/profile_title"
-            android:textAppearance="?attr/textAppearanceHeadlineLarge"
-            android:textColor="@color/onPrimary_light" />
+            android:layout_marginTop="20dp"
+            android:text="@string/welcome_back"
+            android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+            android:textColor="@color/text_primary_light" />
 
         <TextView
             android:layout_width="match_parent"
@@ -33,56 +39,29 @@
             android:layout_marginTop="6dp"
             android:text="@string/login_subtitle"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/primaryContainer_light" />
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/loginPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="24dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_panel"
-        android:orientation="vertical"
-        android:padding="20dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/profileHeader">
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/sign_in"
-            android:textAppearance="?attr/textAppearanceTitleLarge"
-            android:textColor="?attr/colorOnSurface" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/login_continue_msg"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textColor="@color/text_secondary_light" />
 
         <com.google.android.material.textfield.TextInputLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="22dp"
+            android:layout_marginTop="28dp"
             android:hint="@string/email"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="@color/primary_light"
-            app:startIconDrawable="@android:drawable/ic_dialog_email"
-            app:startIconTint="@color/primary_light">
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxStrokeColor="@color/brand_light"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="clear_text">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etEmail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textEmailAddress" />
+                android:inputType="textEmailAddress"
+                android:paddingHorizontal="4dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout
@@ -90,45 +69,48 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="14dp"
             android:hint="@string/password"
-            app:boxCornerRadiusBottomEnd="8dp"
-            app:boxCornerRadiusBottomStart="8dp"
-            app:boxCornerRadiusTopEnd="8dp"
-            app:boxCornerRadiusTopStart="8dp"
-            app:boxStrokeColor="@color/primary_light"
-            app:endIconMode="password_toggle"
-            app:startIconDrawable="@android:drawable/ic_lock_lock"
-            app:startIconTint="@color/primary_light">
+            app:boxBackgroundMode="outline"
+            app:boxCornerRadiusBottomEnd="14dp"
+            app:boxCornerRadiusBottomStart="14dp"
+            app:boxCornerRadiusTopEnd="14dp"
+            app:boxCornerRadiusTopStart="14dp"
+            app:boxStrokeColor="@color/brand_light"
+            app:boxStrokeWidth="1dp"
+            app:boxStrokeWidthFocused="2dp"
+            app:endIconMode="password_toggle">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etPassword"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:inputType="textPassword" />
+                android:inputType="textPassword"
+                android:paddingHorizontal="4dp" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <TextView
             android:id="@+id/tvOrDivider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
+            android:layout_marginTop="20dp"
             android:gravity="center"
             android:text="@string/google_sign_in_divider"
             android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textColor="@color/text_secondary_light" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnGoogleSignIn"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/Widget.Easygov.OutlinedButton"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
+            android:layout_height="48dp"
             android:layout_marginTop="14dp"
             android:text="@string/google_sign_in_continue" />
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btnLogin"
+            style="@style/Widget.Easygov.Button"
             android:layout_width="match_parent"
-            android:layout_height="52dp"
-            android:layout_marginTop="18dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="16dp"
             android:text="@string/login" />
 
         <TextView
@@ -136,58 +118,28 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:layout_marginTop="16dp"
+            android:layout_marginTop="22dp"
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
             android:text="@string/no_account_signup"
             android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/primary_light"
-            android:textStyle="bold"
-            android:clickable="true"
-            android:focusable="true"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/accountPreviewPanel"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="20dp"
-        android:layout_marginTop="16dp"
-        android:layout_marginEnd="20dp"
-        android:background="@drawable/bg_panel"
-        android:orientation="vertical"
-        android:padding="18dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/loginPanel">
+            android:textColor="@color/brand_light"
+            android:textStyle="bold" />
 
         <TextView
-            android:layout_width="match_parent"
+            android:id="@+id/btnChangeServerUrl"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/account_preview"
-            android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:layout_marginTop="8dp"
-            android:text="@string/account_preview_msg"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:background="?attr/selectableItemBackground"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="6dp"
+            android:text="@string/server_address_change"
+            android:textAppearance="?attr/textAppearanceLabelMedium"
+            android:textColor="@color/text_secondary_light" />
     </LinearLayout>
-
-    <TextView
-        android:id="@+id/btnChangeServerUrl"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="14dp"
-        android:background="?attr/selectableItemBackground"
-        android:clickable="true"
-        android:focusable="true"
-        android:padding="6dp"
-        android:text="@string/server_address_change"
-        android:textAppearance="?attr/textAppearanceLabelMedium"
-        android:textColor="@color/primary_light"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/accountPreviewPanel" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.core.widget.NestedScrollView>

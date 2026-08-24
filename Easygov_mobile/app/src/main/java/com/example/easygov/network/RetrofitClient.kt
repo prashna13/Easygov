@@ -2,6 +2,7 @@ package com.example.easygov.network
 
 import android.content.Context
 import com.example.easygov.LocaleManager
+import com.example.easygov.SessionManager
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -64,6 +65,17 @@ object RetrofitClient {
                     .addQueryParameter("lang", lang)
                     .build()
                 chain.proceed(original.newBuilder().url(url).build())
+            }
+            // A 401 on a request that actually carried a token means the stored
+            // session is stale/invalid (e.g. server secret rotated, token
+            // expired). Clear it so the app stops erroring and asks for re-login
+            // instead of silently hitting protected APIs forever.
+            .addInterceptor { chain ->
+                val resp = chain.proceed(chain.request())
+                if (resp.code() == 401 && chain.request().header("Authorization") != null) {
+                    SessionManager.getInstance(appContext).clearSession()
+                }
+                resp
             }
             .build()
     }

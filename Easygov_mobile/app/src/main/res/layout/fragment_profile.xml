@@ -7,13 +7,10 @@
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scrollContent"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:clipToPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:fillViewport="true">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -21,24 +18,25 @@
             android:orientation="vertical"
             android:paddingBottom="24dp">
 
+            <!-- Flat profile header -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_header_band"
                 android:gravity="center_vertical"
                 android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingTop="24dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="24dp">
+                android:paddingStart="16dp"
+                android:paddingTop="16dp"
+                android:paddingEnd="16dp"
+                android:paddingBottom="4dp">
 
                 <ImageView
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:background="@drawable/bg_category_tag"
+                    android:background="@drawable/bg_icon_soft"
                     android:contentDescription="@string/profile_avatar"
-                    android:padding="14dp"
-                    android:src="@android:drawable/ic_menu_myplaces" />
+                    android:padding="16dp"
+                    app:srcCompat="@drawable/ic_person"
+                    app:tint="@color/brand_light" />
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -52,36 +50,38 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/profile_name_placeholder"
-                        android:textAppearance="?attr/textAppearanceHeadlineLarge"
-                        android:textColor="@color/onPrimary_light" />
+                        android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                        android:textColor="@color/text_primary_light" />
 
                     <TextView
                         android:id="@+id/tvProfileEmail"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="2dp"
                         android:text="@string/profile_email_placeholder"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="@color/primaryContainer_light" />
+                        android:textColor="@color/text_secondary_light" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Personal information -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginEnd="20dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/bg_panel"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/personal_info"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="@color/text_primary_light"
+                    android:textStyle="bold" />
 
                 <LinearLayout
                     android:id="@+id/rowCitizenship"
@@ -96,17 +96,18 @@
                         android:layout_weight="1"
                         android:text="@string/citizenship_no"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvCitizenshipNumber"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -122,17 +123,18 @@
                         android:layout_weight="1"
                         android:text="@string/phone"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvPhone"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -148,17 +150,18 @@
                         android:layout_weight="1"
                         android:text="@string/province"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvProvince"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -174,17 +177,18 @@
                         android:layout_weight="1"
                         android:text="@string/date_of_birth"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvDob"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -200,17 +204,18 @@
                         android:layout_weight="1"
                         android:text="@string/age"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvAge"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -226,36 +231,39 @@
                         android:layout_weight="1"
                         android:text="@string/address"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:textColor="@color/text_secondary_light" />
 
                     <TextView
                         android:id="@+id/tvAddress"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1.4"
+                        android:layout_weight="1.2"
                         android:gravity="end"
                         android:text="—"
                         android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="?attr/colorOnSurface" />
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
                 </LinearLayout>
             </LinearLayout>
 
+            <!-- Language -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="14dp"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/bg_panel"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/language"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="@color/text_primary_light"
+                    android:textStyle="bold" />
 
                 <com.google.android.material.button.MaterialButtonToggleGroup
                     android:id="@+id/langGroup"
@@ -267,83 +275,93 @@
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLangEn"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Easygov.SegmentButton"
                         android:layout_width="0dp"
-                        android:layout_height="52dp"
+                        android:layout_height="44dp"
                         android:layout_weight="1"
-                        android:text="@string/lang_en"
-                        app:cornerRadius="12dp" />
+                        android:text="@string/lang_en" />
 
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnLangNe"
-                        style="@style/Widget.Material3.Button.OutlinedButton"
+                        style="@style/Widget.Easygov.SegmentButton"
                         android:layout_width="0dp"
-                        android:layout_height="52dp"
+                        android:layout_height="44dp"
                         android:layout_marginStart="8dp"
                         android:layout_weight="1"
-                        android:text="@string/lang_ne"
-                        app:cornerRadius="12dp" />
+                        android:text="@string/lang_ne" />
                 </com.google.android.material.button.MaterialButtonToggleGroup>
             </LinearLayout>
 
+            <!-- Server settings -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="14dp"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/bg_panel"
-                android:orientation="vertical"
-                android:padding="20dp">
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <TextView
-                    android:layout_width="match_parent"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/server_address"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvServerUrl"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:ellipsize="middle"
-                    android:maxLines="1"
-                    android:text="http://10.0.2.2:8000/"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/server_address"
+                        android:textAppearance="?attr/textAppearanceTitleMedium"
+                        android:textColor="@color/text_primary_light"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/tvServerUrl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:ellipsize="middle"
+                        android:maxLines="1"
+                        android:text="http://10.0.2.2:8000/"
+                        android:textAppearance="?attr/textAppearanceBodySmall"
+                        android:textColor="@color/text_secondary_light" />
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/btnEditServerUrl"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
+                    android:layout_height="44dp"
                     android:background="?attr/selectableItemBackground"
                     android:clickable="true"
                     android:focusable="true"
-                    android:padding="4dp"
+                    android:gravity="center"
+                    android:paddingHorizontal="12dp"
                     android:text="@string/server_address_change"
-                    android:textAppearance="?attr/textAppearanceLabelLarge"
-                    android:textColor="@color/primary_light" />
+                    android:textAppearance="@style/TextAppearance.Easygov.ButtonLabel"
+                    android:textColor="@color/brand_light" />
             </LinearLayout>
 
+            <!-- My applications -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="14dp"
-                android:layout_marginEnd="20dp"
+                android:layout_marginEnd="16dp"
                 android:background="@drawable/bg_panel"
                 android:orientation="vertical"
-                android:padding="20dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/my_applications"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:textAppearance="?attr/textAppearanceTitleMedium"
+                    android:textColor="@color/text_primary_light"
+                    android:textStyle="bold" />
 
                 <TextView
                     android:id="@+id/tvProgressEmpty"
@@ -352,7 +370,7 @@
                     android:layout_marginTop="10dp"
                     android:text="@string/no_applications"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
+                    android:textColor="@color/text_secondary_light" />
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvApplications"
@@ -363,44 +381,86 @@
                     android:overScrollMode="never" />
             </LinearLayout>
 
-            <Button
+            <!-- Logout -->
+            <LinearLayout
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginStart="20dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="22dp"
-                android:layout_marginEnd="20dp"
-                android:backgroundTint="@android:color/holo_red_dark"
-                android:text="@string/sign_out" />
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_danger_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:contentDescription="@string/sign_out"
+                    app:srcCompat="@drawable/ic_logout"
+                    app:tint="@color/onDangerContainer_light" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/sign_out"
+                    android:textAppearance="@style/TextAppearance.Easygov.ButtonLabel"
+                    android:textColor="@color/onDangerContainer_light" />
+            </LinearLayout>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
+    <!-- Error overlay -->
     <LinearLayout
         android:id="@+id/errorLayout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:background="@drawable/bg_panel"
+        android:layout_height="match_parent"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:padding="32dp"
         android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_icon_soft"
+            android:contentDescription="@string/profile_load_error"
+            android:padding="18dp"
+            app:srcCompat="@drawable/ic_warning"
+            app:tint="@color/text_secondary_light" />
 
         <TextView
             android:id="@+id/tvProfileError"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:gravity="center"
             android:text="@string/profile_load_error"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_primary_light"
+            android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
+        <TextView
             android:id="@+id/btnRetryProfile"
             android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:layout_marginTop="18dp"
-            android:text="@string/retry" />
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_accent_filled_round"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:paddingHorizontal="24dp"
+            android:text="@string/retry"
+            android:textAppearance="@style/TextAppearance.Easygov.ButtonLabel"
+            android:textColor="@color/onPrimary_light" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

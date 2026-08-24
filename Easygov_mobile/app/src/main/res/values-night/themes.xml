@@ -6,19 +6,36 @@
         <item name="colorOnPrimary">@color/onPrimary_dark</item>
         <item name="colorPrimaryContainer">@color/primaryContainer_dark</item>
         <item name="colorOnPrimaryContainer">@color/onPrimaryContainer_dark</item>
+        <item name="colorPrimaryInverse">@color/primary_light</item>
 
         <item name="colorSecondary">@color/secondary_dark</item>
         <item name="colorOnSecondary">@color/onSecondary_dark</item>
         <item name="colorSecondaryContainer">@color/secondaryContainer_dark</item>
         <item name="colorOnSecondaryContainer">@color/onSecondaryContainer_dark</item>
+        <item name="colorTertiary">@color/secondary_dark</item>
+        <item name="colorTertiaryContainer">@color/secondaryContainer_dark</item>
 
         <item name="android:colorBackground">@color/background_dark</item>
         <item name="colorOnBackground">@color/onBackground_dark</item>
         <item name="colorSurface">@color/surface_dark</item>
         <item name="colorOnSurface">@color/onSurface_dark</item>
+        <item name="colorSurfaceContainer">@color/surfaceContainer_dark</item>
+        <item name="colorSurfaceContainerHigh">@color/surfaceContainer_dark</item>
         <item name="colorSurfaceVariant">@color/surfaceVariant_dark</item>
         <item name="colorOnSurfaceVariant">@color/onSurfaceVariant_dark</item>
         <item name="colorOutline">@color/outline_dark</item>
+        <item name="colorOutlineVariant">@color/outline_dark</item>
+        <item name="colorError">@color/danger_dark</item>
+        <item name="colorErrorContainer">@color/dangerContainer_dark</item>
+        <item name="colorOnErrorContainer">@color/onDangerContainer_dark</item>
+
+        <!-- Window / system bars -->
+        <item name="android:windowBackground">@color/background_dark</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/surface_dark</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar">false</item>
+        <item name="android:windowNoTitle">true</item>
 
         <!-- Typography -->
         <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Easygov.HeadlineLarge</item>
@@ -35,21 +52,59 @@
         <!-- Component Specific Styles -->
         <item name="materialCardViewStyle">@style/Widget.Easygov.Card</item>
         <item name="materialButtonStyle">@style/Widget.Easygov.Button</item>
+        <item name="bottomNavigationStyle">@style/Widget.Easygov.NavigationBar</item>
     </style>
 
     <style name="Theme.Easygov" parent="Base.Theme.Easygov" />
 
+    <!-- Cards: 16dp radius, soft elevation, no outlines -->
     <style name="Widget.Easygov.Card" parent="Widget.Material3.CardView.Elevated">
         <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Card</item>
         <item name="cardBackgroundColor">@color/surface_dark</item>
+        <item name="cardElevation">2dp</item>
+        <item name="cardCornerRadius">16dp</item>
+        <item name="strokeWidth">0dp</item>
     </style>
 
     <style name="Widget.Easygov.Button" parent="Widget.Material3.Button">
         <item name="shapeAppearance">@style/ShapeAppearance.Easygov.Button</item>
+        <item name="android:textStyle">bold</item>
+        <item name="cornerRadius">12dp</item>
     </style>
 
-    <style name="Widget.Easygov.BottomNavigation.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
-        <item name="android:color">@color/primaryContainer_dark</item>
-        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.SmallComponent</item>
+    <style name="Widget.Easygov.NavigationBar" parent="Widget.Material3.BottomNavigationView">
+        <item name="backgroundTint">@color/surface_dark</item>
+        <item name="elevation">8dp</item>
+        <item name="itemActiveIndicatorStyle">@style/Widget.Easygov.NavigationBar.ActiveIndicator</item>
+    </style>
+
+    <style name="Widget.Easygov.NavigationBar.ActiveIndicator" parent="Widget.Material3.BottomNavigationView.ActiveIndicator">
+        <item name="android:color">@color/chipHighlight_dark</item>
+        <item name="shapeAppearance">@style/ShapeAppearance.Easygov.MediumComponent</item>
+        <item name="android:width">56dp</item>
+        <item name="android:height">32dp</item>
+    </style>
+
+    <style name="Widget.Easygov.FilterChip" parent="Widget.Material3.Chip.Filter">
+        <item name="chipBackgroundColor">@color/surface_dark</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipCornerRadius">16dp</item>
+    </style>
+    <style name="Widget.Easygov.AssistChip" parent="Widget.Material3.Chip.Assist">
+        <item name="chipBackgroundColor">@color/chipHighlight_dark</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipCornerRadius">16dp</item>
+    </style>
+    <style name="Widget.Easygov.SuggestionChip" parent="Widget.Material3.Chip.Suggestion">
+        <item name="chipBackgroundColor">@color/surfaceVariant_dark</item>
+        <item name="chipStrokeWidth">0dp</item>
+        <item name="chipCornerRadius">16dp</item>
+    </style>
+
+    <style name="Widget.Easygov.LinearProgressDeterminate" parent="Widget.Material3.LinearProgressIndicator">
+        <item name="trackColor">@color/surfaceVariant_dark</item>
+        <item name="indicatorColor">@color/success_dark</item>
+        <item name="trackThickness">6dp</item>
+        <item name="indicatorTrackGapSize">0dp</item>
     </style>
 </resources>

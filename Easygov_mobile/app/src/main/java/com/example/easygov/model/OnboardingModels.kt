@@ -6,9 +6,12 @@ import com.google.gson.annotations.SerializedName
  * Request payload for the first-login onboarding flow.
  * `completedDocuments` are document keys the user already owns, e.g.
  * ["birth_certificate", "citizenship", "nid"].
+ *
+ * `age` is nullable: it is derived server-side from the user's date_of_birth
+ * (captured at registration), so the app omits it unless a DOB is unavailable.
  */
 data class OnboardingRequest(
-    @SerializedName("age") val age: Int,
+    @SerializedName("age") val age: Int? = null,
     @SerializedName("completed_documents") val completedDocuments: List<String>
 )
 

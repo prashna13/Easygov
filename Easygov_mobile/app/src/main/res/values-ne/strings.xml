@@ -118,6 +118,7 @@
     <string name="phone">फोन</string>
     <string name="province">प्रदेश</string>
     <string name="date_of_birth">जन्म मिति</string>
+    <string name="error_minimum_age">न्यूनतम उमेर आवश्यक: दर्ताका लागि कम्तीमा १६ वर्ष उमेर पुगेको हुनुपर्छ।</string>
     <string name="age">उमेर</string>
     <string name="address">ठेगाना</string>
     <string name="my_applications">मेरा आवेदनहरू र प्रगति</string>

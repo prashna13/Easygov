@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/swipeRefresh"
@@ -23,143 +23,319 @@
                 android:orientation="vertical"
                 android:paddingBottom="24dp">
 
+                <!-- Top bar: app title + avatar/welcome -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:background="@drawable/bg_header_band"
-                    android:orientation="vertical"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
                     android:paddingStart="20dp"
-                    android:paddingTop="28dp"
-                    android:paddingEnd="20dp"
-                    android:paddingBottom="24dp">
+                    android:paddingTop="12dp"
+                    android:paddingEnd="20dp">
 
                     <TextView
-                        android:layout_width="match_parent"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_weight="1"
                         android:text="@string/dash_brand"
-                        android:textAppearance="?attr/textAppearanceHeadlineLarge"
-                        android:textColor="@color/onPrimary_light" />
-
-                    <TextView
-                        android:id="@+id/tvDashboardTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/dash_subtitle"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="@color/primaryContainer_light" />
+                        android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                        android:textColor="@color/text_primary_light" />
 
                     <LinearLayout
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="18dp"
+                        android:gravity="center_vertical"
                         android:orientation="horizontal">
 
-                        <TextView
-                            android:layout_width="0dp"
+                        <LinearLayout
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_stat_chip"
-                            android:gravity="center"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="10dp"
-                            android:text="@string/dash_priority_count"
-                            android:textAppearance="?attr/textAppearanceLabelLarge"
-                            android:textColor="@color/success_light" />
+                            android:gravity="end"
+                            android:orientation="vertical">
 
-                        <TextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:background="@drawable/bg_stat_chip"
-                            android:gravity="center"
-                            android:paddingHorizontal="12dp"
-                            android:paddingVertical="10dp"
-                            android:text="@string/dash_service_count"
-                            android:textAppearance="?attr/textAppearanceLabelLarge"
-                            android:textColor="@color/success_light" />
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/dash_welcome_prefix"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="@color/text_secondary_light" />
+
+                            <TextView
+                                android:id="@+id/tvDashboardTitle"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:maxLines="1"
+                                android:text="@string/dash_subtitle"
+                                android:textAppearance="?attr/textAppearanceLabelLarge"
+                                android:textColor="@color/text_primary_light"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+
+                        <ImageView
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_marginStart="12dp"
+                            android:background="@drawable/bg_avatar"
+                            android:contentDescription="@string/profile_avatar"
+                            android:padding="8dp"
+                            app:srcCompat="@drawable/ic_person"
+                            app:tint="@color/onPrimary_light" />
                     </LinearLayout>
                 </LinearLayout>
 
+                <!-- Search bar -->
                 <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="20dp"
+                    android:background="@drawable/bg_input"
+                    android:elevation="1dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="12dp">
+
+                    <ImageView
+                        android:layout_width="22dp"
+                        android:layout_height="22dp"
+                        android:contentDescription="@string/search"
+                        app:srcCompat="@drawable/ic_search"
+                        app:tint="@color/text_secondary_light" />
+
+                    <EditText
+                        android:id="@+id/etSearch"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="12dp"
+                        android:layout_weight="1"
+                        android:background="@null"
+                        android:hint="@string/search_services"
+                        android:imeOptions="actionSearch"
+                        android:importantForAutofill="no"
+                        android:inputType="text"
+                        android:maxLines="1"
+                        android:textAppearance="?attr/textAppearanceBodyLarge"
+                        android:textColor="@color/text_primary_light"
+                        android:textColorHint="@color/text_secondary_light" />
+                </LinearLayout>
+
+                <!-- Filter chips -->
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:fillViewport="false"
+                    android:scrollbars="none">
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp">
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPriority"
+                            style="@style/Widget.Easygov.FilterChip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:checkable="true"
+                            android:checked="true"
+                            android:textColor="@color/nav_item_color" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipServices"
+                            style="@style/Widget.Easygov.FilterChip"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:checkable="true"
+                            android:checked="true"
+                            android:textColor="@color/nav_item_color" />
+                    </LinearLayout>
+                </HorizontalScrollView>
+
+                <!-- Hero recommendation card -->
+                <com.google.android.material.card.MaterialCardView
                     android:id="@+id/nextStepBanner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginEnd="20dp"
-                    android:background="@drawable/bg_panel"
                     android:clickable="true"
                     android:focusable="true"
                     android:foreground="?attr/selectableItemBackground"
-                    android:orientation="vertical"
-                    android:padding="16dp"
-                    android:visibility="gone">
+                    app:cardBackgroundColor="@color/surface_light"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:padding="16dp">
+
+                        <TextView
+                            android:id="@+id/tvHeroBadge"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_stat_chip"
+                            android:paddingStart="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="4dp"
+                            android:text="@string/dash_next_step_label"
+                            android:textAllCaps="false"
+                            android:textAppearance="?attr/textAppearanceLabelSmall"
+                            android:textColor="@color/onSuccessContainer_light" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <FrameLayout
+                                android:layout_width="56dp"
+                                android:layout_height="56dp"
+                                android:background="@drawable/bg_icon_well"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:id="@+id/ivHeroIcon"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="match_parent"
+                                    android:contentDescription="@string/service_icon"
+                                    app:srcCompat="@drawable/ic_service"
+                                    app:tint="@color/brand_light" />
+                            </FrameLayout>
+
+                            <LinearLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="14dp"
+                                android:layout_weight="1"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:id="@+id/tvNextStepTitle"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:ellipsize="end"
+                                    android:maxLines="2"
+                                    android:text="@string/dash_next_step_placeholder"
+                                    android:textAppearance="?attr/textAppearanceTitleLarge"
+                                    android:textColor="@color/text_primary_light"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="@string/dash_next_step_tap"
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="@color/text_secondary_light" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="14dp"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.progressindicator.LinearProgressIndicator
+                                android:id="@+id/piHeroProgress"
+                                style="@style/Widget.Easygov.LinearProgressDeterminate"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:max="100"
+                                app:indicatorColor="@color/success_light"
+                                app:trackColor="@color/surfaceContainer_light" />
+
+                            <TextView
+                                android:id="@+id/tvHeroProgress"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="10dp"
+                                android:text="@string/dash_progress_zero"
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="@color/text_secondary_light" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnHeroAction"
+                            style="@style/Widget.Easygov.Button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="42dp"
+                            android:layout_gravity="end"
+                            android:layout_marginTop="12dp"
+                            android:text="@string/dash_view_requirements"
+                            app:cornerRadius="20dp" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
+                <!-- For You section -->
+                <LinearLayout
+                    android:id="@+id/llForYouSection"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/dash_next_step_label"
-                        android:textAppearance="?attr/textAppearanceLabelLarge"
-                        android:textColor="@color/success_light" />
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="22dp"
+                        android:layout_marginEnd="20dp"
+                        android:text="@string/dash_for_you"
+                        android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                        android:textColor="@color/text_primary_light" />
 
-                    <TextView
-                        android:id="@+id/tvNextStepTitle"
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvRecommendations"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/dash_next_step_placeholder"
-                        android:textAppearance="?attr/textAppearanceTitleMedium"
-                        android:textColor="@color/primary_light" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/dash_next_step_tap"
-                        android:textAppearance="?attr/textAppearanceBodySmall"
-                        android:textColor="?attr/colorOnSurfaceVariant" />
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="12dp"
+                        android:nestedScrollingEnabled="false" />
                 </LinearLayout>
 
-                <TextView
+                <!-- All Services section -->
+                <LinearLayout
+                    android:id="@+id/llAllServicesSection"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="22dp"
-                    android:layout_marginEnd="20dp"
-                    android:text="@string/dash_for_you"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
+                    android:orientation="vertical">
 
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvRecommendations"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="12dp"
-                    android:nestedScrollingEnabled="false" />
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="20dp"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginEnd="20dp"
+                        android:text="@string/dash_all_services"
+                        android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                        android:textColor="@color/text_primary_light" />
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:text="@string/dash_all_services"
-                    android:textAppearance="?attr/textAppearanceTitleLarge"
-                    android:textColor="?attr/colorOnSurface" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvDashboard"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginTop="8dp"
-                    android:layout_marginEnd="12dp"
-                    android:nestedScrollingEnabled="false" />
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvDashboard"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginEnd="12dp"
+                        android:nestedScrollingEnabled="false" />
+                </LinearLayout>
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
 
@@ -176,8 +352,9 @@
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:background="@drawable/bg_icon_well"
+                android:contentDescription="@string/dash_conn_error"
                 android:padding="12dp"
-                android:src="@android:drawable/stat_notify_error"
+                android:src="@drawable/ic_warning"
                 app:tint="?attr/colorError" />
 
             <TextView
@@ -185,7 +362,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="@string/dash_conn_error"
-                android:textAppearance="?attr/textAppearanceTitleLarge" />
+                android:textAppearance="?attr/textAppearanceTitleLarge"
+                android:textColor="@color/text_primary_light" />
 
             <TextView
                 android:id="@+id/tvErrorMessage"
@@ -194,10 +372,12 @@
                 android:layout_marginTop="8dp"
                 android:text="@string/dash_conn_error_msg"
                 android:textAlignment="center"
-                android:textAppearance="?attr/textAppearanceBodyMedium" />
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_secondary_light" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnRetry"
+                style="@style/Widget.Easygov.Button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"

@@ -21,4 +21,20 @@
     <style name="ShapeAppearance.Easygov.Button" parent="ShapeAppearance.Material3.SmallComponent">
         <item name="cornerSize">12dp</item>
     </style>
+
+    <!-- Message bubble: uniform 16dp corners -->
+    <style name="ShapeAppearance.Easygov.Bubble" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerSize">16dp</item>
+    </style>
+
+    <!-- Soft squircle for icon badges -->
+    <style name="ShapeAppearance.Easygov.Squircle" parent="ShapeAppearance.Material3.LargeComponent">
+        <item name="cornerSize">28dp</item>
+    </style>
+
+    <!-- Fully rounded fit for the send button -->
+    <style name="ShapeAppearance.Easygov.Circle" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">50%</item>
+    </style>
 </resources>

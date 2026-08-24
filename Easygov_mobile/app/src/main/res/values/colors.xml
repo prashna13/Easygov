@@ -1,52 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Light Mode Colors -->
-    <color name="primary_light">#1B3D6D</color>
+    <!-- Light Mode Colors (Material 3 spec palette) -->
+    <color name="primary_light">#2563EB</color>
     <color name="onPrimary_light">#FFFFFF</color>
-    <color name="primaryContainer_light">#D6E3FF</color>
-    <color name="onPrimaryContainer_light">#001B3E</color>
+    <color name="primaryContainer_light">#DBEAFE</color>
+    <color name="onPrimaryContainer_light">#1E3A8A</color>
 
-    <color name="secondary_light">#4A6367</color>
+    <color name="secondary_light">#64748B</color>
     <color name="onSecondary_light">#FFFFFF</color>
-    <color name="secondaryContainer_light">#CCE8ED</color>
-    <color name="onSecondaryContainer_light">#051F23</color>
+    <color name="secondaryContainer_light">#F1F5F9</color>
+    <color name="onSecondaryContainer_light">#0F172A</color>
 
-    <color name="background_light">#F8F9FA</color>
-    <color name="onBackground_light">#1A1C1E</color>
-    <color name="surface_light">#FDFBFF</color>
-    <color name="onSurface_light">#1A1C1E</color>
-    <color name="surfaceVariant_light">#E0E2EC</color>
-    <color name="onSurfaceVariant_light">#44474E</color>
-    <color name="outline_light">#74777F</color>
-    <color name="screen_light">#F4F7FA</color>
+    <color name="background_light">#F8FAFC</color>
+    <color name="onBackground_light">#0F172A</color>
+    <color name="surface_light">#FFFFFF</color>
+    <color name="onSurface_light">#0F172A</color>
+    <color name="surfaceContainer_light">#F1F5F9</color>
+    <color name="surfaceVariant_light">#F1F5F9</color>
+    <color name="onSurfaceVariant_light">#64748B</color>
+    <color name="outline_light">#E2E8F0</color>
+
+    <color name="screen_light">#F8FAFC</color>
     <color name="card_light">#FFFFFF</color>
     <color name="field_light">#FFFFFF</color>
-    <color name="divider_light">#D8DEE8</color>
-    <color name="success_light">#146C57</color>
-    <color name="successContainer_light">#DDF4EA</color>
-    <color name="warning_light">#8A5A00</color>
-    <color name="warningContainer_light">#FFF1CC</color>
+    <color name="divider_light">#E2E8F0</color>
+
+    <!-- Semantic tokens (light) -->
+    <color name="text_primary_light">#0F172A</color>
+    <color name="text_secondary_light">#64748B</color>
+    <color name="brand_light">#2563EB</color>
+    <color name="success_light">#059669</color>
+    <color name="onSuccess_light">#FFFFFF</color>
+    <color name="successContainer_light">#D1FAE5</color>
+    <color name="onSuccessContainer_light">#065F46</color>
+    <color name="chipHighlight_light">#DBEAFE</color>
+    <color name="cardShadow_light">#0F172A</color>
+    <color name="danger_light">#DC2626</color>
+    <color name="dangerContainer_light">#FEE2E2</color>
+    <color name="onDangerContainer_light">#991B1B</color>
+    <color name="warning_light">#B45309</color>
+    <color name="warningContainer_light">#FEF3C7</color>
 
     <!-- Dark Mode Colors -->
-    <color name="primary_dark">#D6E3FF</color>
-    <color name="onPrimary_dark">#002F64</color>
-    <color name="primaryContainer_dark">#00478F</color>
-    <color name="onPrimaryContainer_dark">#D6E3FF</color>
+    <color name="primary_dark">#60A5FA</color>
+    <color name="onPrimary_dark">#0B1220</color>
+    <color name="primaryContainer_dark">#1E3A8A</color>
+    <color name="onPrimaryContainer_dark">#DBEAFE</color>
 
-    <color name="secondary_dark">#B1CBCE</color>
-    <color name="onSecondary_dark">#1B3439</color>
-    <color name="secondaryContainer_dark">#324B50</color>
-    <color name="onSecondaryContainer_dark">#CCE8ED</color>
+    <color name="secondary_dark">#94A3B8</color>
+    <color name="onSecondary_dark">#0F172A</color>
+    <color name="secondaryContainer_dark">#1E293B</color>
+    <color name="onSecondaryContainer_dark">#E2E8F0</color>
 
-    <color name="background_dark">#1A1C1E</color>
-    <color name="onBackground_dark">#E2E2E6</color>
-    <color name="surface_dark">#1A1C1E</color>
-    <color name="onSurface_dark">#E2E2E6</color>
-    <color name="surfaceVariant_dark">#44474E</color>
-    <color name="onSurfaceVariant_dark">#C4C6D0</color>
-    <color name="outline_dark">#8E9099</color>
+    <color name="background_dark">#0F172A</color>
+    <color name="onBackground_dark">#E2E8F0</color>
+    <color name="surface_dark">#1E293B</color>
+    <color name="onSurface_dark">#E2E8F0</color>
+    <color name="surfaceContainer_dark">#1E293B</color>
+    <color name="surfaceVariant_dark">#334155</color>
+    <color name="onSurfaceVariant_dark">#94A3B8</color>
+    <color name="outline_dark">#334155</color>
+
+    <!-- Semantic tokens (dark) -->
+    <color name="text_primary_dark">#E2E8F0</color>
+    <color name="text_secondary_dark">#94A3B8</color>
+    <color name="brand_dark">#60A5FA</color>
+    <color name="success_dark">#34D399</color>
+    <color name="onSuccess_dark">#052E16</color>
+    <color name="successContainer_dark">#064E3B</color>
+    <color name="onSuccessContainer_dark">#A7F3D0</color>
+    <color name="chipHighlight_dark">#1E3A8A</color>
+    <color name="cardShadow_dark">#000000</color>
+    <color name="danger_dark">#F87171</color>
+    <color name="dangerContainer_dark">#450A0A</color>
+    <color name="onDangerContainer_dark">#FECACA</color>
+    <color name="warning_dark">#FBBF24</color>
+    <color name="warningContainer_dark">#451A03</color>
 
     <!-- Common -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="transparent">#00000000</color>
 </resources>

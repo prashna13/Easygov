@@ -3,7 +3,7 @@ package com.example.easygov
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 
 class MainActivity : AppCompatActivity() {
 
@@ -11,7 +11,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val bottomNav = findViewById<BottomNavigationView>(R.id.bottomNavigation)
+        val bottomNav = findViewById<NavigationBarView>(R.id.bottomNavigation)
 
         // Set the default launch fragment tab when user opens app (Start with Chatbot for now)
         if (savedInstanceState == null) {

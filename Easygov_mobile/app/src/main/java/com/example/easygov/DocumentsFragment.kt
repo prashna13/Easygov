@@ -73,6 +73,9 @@ class DocumentsFragment : Fragment() {
         view.findViewById<View>(R.id.btnUploadDocument).setOnClickListener {
             pickDocument.launch("*/*")
         }
+        view.findViewById<View>(R.id.btnAddDocument).setOnClickListener {
+            pickDocument.launch("*/*")
+        }
         view.findViewById<View>(R.id.btnRetryDocs).setOnClickListener {
             errorLayout.visibility = View.GONE
             scrollContent.visibility = View.VISIBLE
@@ -98,7 +101,9 @@ class DocumentsFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         bindDocuments(response.body()!!)
                     } else {
-                        showError(getString(R.string.server_error, response.code().toString()))
+                        val msg = if (response.code() == 401) getString(R.string.doc_sign_in)
+                            else getString(R.string.server_error, response.code().toString())
+                        showError(msg)
                     }
                 }
 

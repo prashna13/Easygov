@@ -9,15 +9,24 @@
 
     <!-- Dashboard -->
     <string name="dash_brand">EasyGov Nepal</string>
+    <string name="dash_welcome_prefix">Good to see you,</string>
     <string name="dash_subtitle">Recommended services and next steps for your profile</string>
+    <string name="search">Search</string>
+    <string name="search_services">Search services or documents…</string>
+    <string name="dash_view_requirements">View requirements</string>
     <string name="dash_priority_count">2 Priority</string>
     <string name="dash_service_count">4 Services</string>
+    <string name="dash_priority_count_live">%1$d Priority</string>
+    <string name="dash_service_count_live">%1$d Services</string>
     <string name="dash_next_step_label">RECOMMENDED NEXT STEP</string>
     <string name="dash_next_step_placeholder">E-Passport Apply</string>
     <string name="dash_next_step_tap">Tap to view requirements and next steps</string>
     <string name="dash_for_you">For You</string>
     <string name="dash_all_services">All Services</string>
     <string name="dash_welcome">Welcome, %1$s — Personalized services &amp; guides</string>
+    <string name="dash_progress_zero">0 of 0 steps</string>
+    <string name="dash_progress_completed">Completed</string>
+    <string name="dash_progress_fraction">%1$d of %2$d steps</string>
     <string name="dash_conn_error">Connection Error</string>
     <string name="dash_conn_error_msg">Check your internet and try again.</string>
     <string name="retry">Retry</string>
@@ -37,6 +46,9 @@
     <string name="detail_next_steps_msg">Prepare documents, confirm fees, and ask the assistant for service-specific requirements before visiting an office.</string>
     <string name="apply_now">Apply Now</string>
     <string name="view_my_application">View My Application</string>
+    <string name="start_app_sign_in">Please sign in to start an application.</string>
+    <string name="start_app_failed">Could not start application (%1$s)</string>
+    <string name="start_app_network">Unable to reach the server. %1$s</string>
 
     <!-- Application progress -->
     <string name="app_progress_title">Application Progress</string>
@@ -69,6 +81,18 @@
     <string name="no_history">No history found</string>
     <string name="chat_view_guide">View full guide</string>
     <string name="chat_guide_title">Service Guide</string>
+    <string name="chat_welcome_robot">EasyGov Assistant</string>
+    <string name="chat_welcome_title">How can we help you today?</string>
+    <string name="chat_welcome_subtitle">Ask about any government service, requirements, fees, or next steps.</string>
+    <string name="suggestion_nid">How do I renew my NID?</string>
+    <string name="suggestion_passport">How do I apply for a passport?</string>
+    <string name="suggestion_license">How do I renew my driving license?</string>
+    <string name="chat_enter_question">Type a question first.</string>
+    <string name="chat_typing">Thinking…</string>
+    <string name="chat_error_prefix">Something went wrong (HTTP %1$s). Please try again.</string>
+    <string name="chat_conn_failed">Could not reach the server. %1$s</string>
+    <string name="chat_sign_in_required">Please sign in to use the assistant.</string>
+    <string name="chat_new_started">New conversation started.</string>
 
     <!-- Login / Register -->
     <string name="profile_title">Profile</string>
@@ -77,9 +101,21 @@
     <string name="login_continue_msg">Continue with your EasyGov account</string>
     <string name="email">Email</string>
     <string name="password">Password</string>
-    <string name="login">Login</string>
+<string name="login">Login</string>
     <string name="signing_in">Signing in...</string>
     <string name="no_account_signup">Don\'t have an account? Sign up</string>
+    <string name="welcome_back">Welcome back</string>
+    <string name="back">Back</string>
+    <string name="login_session_active">Session Active</string>
+    <string name="login_invalid_credentials">Invalid email or password</string>
+    <string name="login_account_deactivated">Account is deactivated</string>
+    <string name="login_failed_code">Login failed (%1$s)</string>
+    <string name="login_network_error">Unable to reach the server. %1$s</string>
+    <string name="login_fill_fields">Please enter both email and password</string>
+    <string name="login_welcome_back">Welcome back, %1$s!</string>
+    <string name="login_google_token_rejected">Google Sign-In failed: token rejected</string>
+    <string name="login_google_linked">This Google account is linked to a different EasyGov account</string>
+    <string name="login_google_failed_code">Google Sign-In failed (%1$s)</string>
     <string name="google_sign_in_divider">OR</string>
     <string name="google_sign_in_continue">Continue with Google</string>
     <string name="google_sign_in_signing">Signing in with Google...</string>
@@ -95,6 +131,10 @@
     <string name="create_account">Create Account</string>
     <string name="creating_account">Creating account...</string>
     <string name="have_account_signin">Already have an account? Sign in</string>
+    <string name="register_success">Account created successfully!</string>
+    <string name="register_failed_code">Registration failed (%1$s)</string>
+    <string name="register_error">Unable to reach the server. %1$s</string>
+    <string name="register_fill_fields">Please fill in all required fields</string>
 
     <!-- Onboarding -->
     <string name="onboarding_title">Complete Your Profile</string>
@@ -109,6 +149,11 @@
     <string name="doc_driving">Driving License</string>
     <string name="action_continue">Continue</string>
     <string name="saving">Saving...</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="onboarding_valid_age">Please enter a valid age</string>
+    <string name="onboarding_success">Profile completed! Here are your personalized services.</string>
+    <string name="onboarding_save_failed">Could not save your profile (%1$s)</string>
+    <string name="onboarding_error">Unable to reach the server. %1$s</string>
 
     <!-- Profile -->
     <string name="profile_avatar">Profile avatar</string>
@@ -119,6 +164,7 @@
     <string name="phone">Phone</string>
     <string name="province">Province</string>
     <string name="date_of_birth">Date of Birth</string>
+    <string name="error_minimum_age">Minimum age required: you must be at least 16 years old to register.</string>
     <string name="age">Age</string>
     <string name="address">Address</string>
     <string name="my_applications">My Applications &amp; Progress</string>

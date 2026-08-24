@@ -15,6 +15,7 @@ class UserRegister(BaseModel):
     email: EmailStr
     password: str
     full_name: str
+    date_of_birth: date
     phone: Optional[str] = None
     citizenship_number: Optional[str] = None
     province: Optional[str] = None
@@ -60,8 +61,12 @@ class OnboardingRequest(BaseModel):
 
     `completed_documents` is a list of document keys, e.g.:
       ["birth_certificate", "citizenship"]
+
+    `age` is optional because it is derived server-side from the user's
+    `date_of_birth` (captured at registration). It is only required as a
+    fallback for accounts with no DOB (e.g. Google sign-in).
     """
-    age: int
+    age: Optional[int] = None
     completed_documents: List[str] = []
 
 

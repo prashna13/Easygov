@@ -6,134 +6,178 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_screen">
 
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/scrollContent"
+    <!-- Flat top bar -->
+    <LinearLayout
+        android:id="@+id/docHeader"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:clipToPadding="false"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:paddingBottom="24dp">
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvDocTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:background="@drawable/bg_header_band"
-                android:gravity="center_vertical"
-                android:orientation="horizontal"
-                android:paddingStart="20dp"
-                android:paddingTop="24dp"
-                android:paddingEnd="20dp"
-                android:paddingBottom="24dp">
+                android:text="@string/doc_title"
+                android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                android:textColor="@color/text_primary_light" />
 
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tvDocTitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/doc_title"
-                        android:textAppearance="?attr/textAppearanceHeadlineLarge"
-                        android:textColor="@color/onPrimary_light" />
-
-                    <TextView
-                        android:id="@+id/tvDocSubtitle"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/doc_subtitle"
-                        android:textAppearance="?attr/textAppearanceBodyMedium"
-                        android:textColor="@color/primaryContainer_light" />
-                </LinearLayout>
-
-                <ImageView
-                    android:layout_width="56dp"
-                    android:layout_height="56dp"
-                    android:layout_marginStart="16dp"
-                    android:background="@drawable/bg_category_tag"
-                    android:contentDescription="@string/doc_title"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_documents" />
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnUploadDocument"
-                android:layout_width="match_parent"
-                android:layout_height="52dp"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="18dp"
-                android:layout_marginEnd="20dp"
-                android:text="@string/doc_upload"
-                app:cornerRadius="14dp"
-                app:icon="@android:drawable/ic_menu_upload" />
-
-            <LinearLayout
+            <TextView
+                android:id="@+id/tvDocSubtitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="14dp"
-                android:layout_marginEnd="20dp"
-                android:background="@drawable/bg_panel"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <TextView
-                    android:id="@+id/tvDocsEmpty"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:text="@string/doc_empty"
-                    android:textAppearance="?attr/textAppearanceBodyMedium"
-                    android:textColor="?attr/colorOnSurfaceVariant" />
-
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvDocuments"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    android:overScrollMode="never"
-                    tools:itemCount="3" />
-            </LinearLayout>
+                android:layout_marginTop="2dp"
+                android:text="@string/doc_subtitle"
+                android:textAppearance="?attr/textAppearanceBodySmall"
+                android:textColor="@color/text_secondary_light" />
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
 
+        <ImageButton
+            android:id="@+id/btnAddDocument"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@drawable/bg_icon_soft"
+            android:contentDescription="@string/doc_upload"
+            android:padding="12dp"
+            app:srcCompat="@drawable/ic_add"
+            app:tint="@color/brand_light" />
+    </LinearLayout>
+
+    <!-- Upload CTA -->
+    <LinearLayout
+        android:id="@+id/btnUploadDocument"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_accent_filled_round"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/docHeader">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:contentDescription="@string/doc_upload"
+            app:srcCompat="@drawable/ic_cloud_upload"
+            app:tint="@color/onPrimary_light" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="@string/doc_upload"
+            android:textAppearance="@style/TextAppearance.Easygov.ButtonLabel"
+            android:textColor="@color/onPrimary_light" />
+    </LinearLayout>
+
+    <!-- List area -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/scrollContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnUploadDocument">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvDocuments"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:overScrollMode="never"
+            android:paddingStart="16dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:itemCount="4" />
+
+        <TextView
+            android:id="@+id/tvDocsEmpty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="@string/doc_empty"
+            android:textAppearance="?attr/textAppearanceBodyMedium"
+            android:textColor="@color/text_secondary_light"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Error overlay -->
     <LinearLayout
         android:id="@+id/errorLayout"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="20dp"
-        android:background="@drawable/bg_panel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
         android:gravity="center"
         android:orientation="vertical"
-        android:padding="24dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
         android:visibility="gone"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnUploadDocument">
+
+        <ImageView
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:background="@drawable/bg_icon_soft"
+            android:contentDescription="@string/doc_load_fail"
+            android:padding="18dp"
+            app:srcCompat="@drawable/ic_cloud_off"
+            app:tint="@color/text_secondary_light" />
 
         <TextView
             android:id="@+id/tvDocsError"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:gravity="center"
             android:text="@string/doc_load_fail"
-            android:textAppearance="?attr/textAppearanceBodyLarge"
-            android:textColor="?attr/colorOnSurfaceVariant" />
+            android:textAppearance="?attr/textAppearanceTitleMedium"
+            android:textColor="@color/text_primary_light"
+            android:textStyle="bold" />
 
-        <com.google.android.material.button.MaterialButton
+        <TextView
             android:id="@+id/btnRetryDocs"
             android:layout_width="wrap_content"
-            android:layout_height="52dp"
-            android:layout_marginTop="18dp"
-            android:text="@string/doc_retry" />
+            android:layout_height="44dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_accent_filled_round"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?attr/selectableItemBackground"
+            android:gravity="center"
+            android:paddingHorizontal="24dp"
+            android:text="@string/doc_retry"
+            android:textAppearance="@style/TextAppearance.Easygov.ButtonLabel"
+            android:textColor="@color/onPrimary_light" />
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

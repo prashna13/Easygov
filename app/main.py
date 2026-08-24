@@ -1,13 +1,14 @@
 import sys
 import os
 import uuid
+from datetime import date
 from pathlib import Path
 
 # Ensure project root is in sys.path when script is executed directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from fastapi import FastAPI, HTTPException, Depends, status, Query, UploadFile, File, Form
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, Response
 from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy import func
@@ -43,6 +44,7 @@ from app.auth_utils import (
 from app.ask_utils import (
     SYSTEM_PROMPTS, parse_ask_json, build_ask_response, resolve_guide_service,
 )
+from app.doc_crypto import encrypt_bytes, decrypt_bytes
 
 load_dotenv()
 
@@ -77,6 +79,10 @@ retriever_k = int(os.getenv("RETRIEVER_K", "6"))
 # 5. User document storage
 DOC_STORAGE_DIR = Path("db_storage/documents")
 DOC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+
+# 6. Minimum age (years) required to register — official documents need 16+
+MIN_REGISTRATION_AGE = 16
+
 ALLOWED_DOC_MIME = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
@@ -261,6 +267,21 @@ class QueryRequest(BaseModel):
 @app.post("/auth/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(user_data: UserRegister, db: Session = Depends(get_db)):
     """Register a new user account and return a JWT access token."""
+    # Age gate: official documents (citizenship, NID, license, ...) require 16+
+    today = date.today()
+    dob = user_data.date_of_birth
+    age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    if dob > today:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Date of birth cannot be in the future."
+        )
+    if age < MIN_REGISTRATION_AGE:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Minimum age required: you must be at least {MIN_REGISTRATION_AGE} years old to register."
+        )
+
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(
@@ -280,6 +301,7 @@ def register(user_data: UserRegister, db: Session = Depends(get_db)):
         email=user_data.email,
         password_hash=hash_password(user_data.password),
         full_name=user_data.full_name,
+        date_of_birth=user_data.date_of_birth,
         phone=user_data.phone,
         citizenship_number=user_data.citizenship_number,
         province=user_data.province
@@ -400,6 +422,9 @@ async def upload_document(
     if len(content) == 0:
         raise HTTPException(status_code=422, detail="Uploaded file is empty.")
 
+    plain_size = len(content)
+    content = encrypt_bytes(content)
+
     safe_filename = os.path.basename(file.filename or "document") or "document"
     stored_name = f"{uuid.uuid4().hex}{ext}"
     dest = _user_doc_dir(current_user.id) / stored_name
@@ -413,7 +438,7 @@ async def upload_document(
         filename=safe_filename,
         stored_name=stored_name,
         mime_type=mime,
-        size_bytes=len(content),
+        size_bytes=plain_size,
     )
     db.add(doc)
     db.commit()
@@ -467,10 +492,17 @@ def download_document(
     file_path = DOC_STORAGE_DIR / str(current_user.id) / doc.stored_name
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="File missing on server")
-    return FileResponse(
-        path=str(file_path),
+
+    raw = file_path.read_bytes()
+    try:
+        data = decrypt_bytes(raw)
+    except ValueError:
+        # Legacy unencrypted file written before encryption was enabled.
+        data = raw
+    return Response(
+        content=data,
         media_type=doc.mime_type,
-        filename=doc.filename,
+        headers={"Content-Disposition": f'attachment; filename="{doc.filename}"'},
     )
 
 
@@ -624,14 +656,23 @@ def submit_onboarding(
     documents they have already completed, then builds a personal document
     dependency profile in user_services.
     """
-    if payload.age <= 0 or payload.age > 130:
+    # Age is captured at registration via date_of_birth, so derive it here to
+    # avoid asking twice. Fall back to the supplied age only when DOB is unknown
+    # (e.g. Google sign-in, which has no DOB).
+    if current_user.date_of_birth is not None:
+        today = date.today()
+        dob = current_user.date_of_birth
+        age = today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
+    else:
+        age = payload.age
+    if age is None or age <= 0 or age > 130:
         raise HTTPException(status_code=400, detail="Please enter a valid age.")
 
     unknown = [k for k in payload.completed_documents if k not in ONBOARDING_DOCUMENTS]
     if unknown:
         raise HTTPException(status_code=400, detail=f"Unknown document keys: {unknown}")
 
-    current_user.age = payload.age
+    current_user.age = age
     current_user.onboarding_completed = True
 
     service_by_title = {s.title: s for s in db.query(DBGovService).all()}
@@ -902,18 +943,22 @@ async def get_dashboard_data(
     needs_onboarding = bool(current_user and not current_user.onboarding_completed)
 
     # Recommendation scoring algorithm based on DB
-    # Priority: Identity & Passport/NID services first (match on English title,
-    # independent of the display language).
+    # Only surface services the user has NOT already completed, ranked by how
+    # actionable they are: (1) prerequisites satisfied first, then (2) position
+    # in the dependency chain, then (3) identity docs priority, then title.
     en_titles = {s.id: s.title for s in db_services}
-    recommendations_out = []
-    if catalog_out:
-        rec_list = sorted(
-            catalog_out,
-            key=lambda x: 0 if "Passport" in en_titles[x.id] or "NID" in en_titles[x.id] else 1
-        )
-        recommendations_out = rec_list[:2]
-        for r in recommendations_out:
-            r.is_recommended = True
+    candidates = [s for s in db_services if s.id not in completed_ids]
+
+    def rec_rank(svc):
+        title = en_titles[svc.id]
+        chain_pos = next((i for i, t in enumerate(NEXT_STEP_CHAIN) if t == title), len(NEXT_STEP_CHAIN))
+        met, _ = get_prerequisite_status(db, svc, completed_ids)
+        prio = 0 if ("Passport" in title or "NID" in title) else 1
+        return (0 if met else 1, chain_pos, prio, title)
+
+    recommendations_out = sorted(candidates, key=rec_rank)[:2]
+    for r in recommendations_out:
+        r.is_recommended = True
 
     # Recommended next step from the dependency chain
     next_step = get_recommended_next_step(db, completed_ids, service_by_title)

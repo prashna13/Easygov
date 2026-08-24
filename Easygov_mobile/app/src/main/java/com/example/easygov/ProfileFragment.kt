@@ -108,7 +108,9 @@ class ProfileFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         bindProfile(response.body()!!)
                     } else {
-                        showError(getString(R.string.server_error, response.code().toString()))
+                        val msg = if (response.code() == 401) getString(R.string.sign_in_for_profile)
+                            else getString(R.string.server_error, response.code().toString())
+                        showError(msg)
                     }
                 }
 

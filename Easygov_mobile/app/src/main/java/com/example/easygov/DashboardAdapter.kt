@@ -5,17 +5,20 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.easygov.model.GovService
+import com.example.easygov.model.ServiceItem
+import com.google.android.material.progressindicator.LinearProgressIndicator
 
 /**
- * Modern Adapter for Dashboard services using ListAdapter for efficient updates.
+ * ListAdapter for the dashboard service grids. Renders the [ServiceItem] card
+ * with a pastel squircle icon, bold title and a linear progress tracker.
  */
 class DashboardAdapter(
-    private val onItemClick: (GovService) -> Unit
-) : ListAdapter<GovService, DashboardAdapter.ServiceViewHolder>(ServiceDiffCallback()) {
+    private val onItemClick: (ServiceItem) -> Unit
+) : ListAdapter<ServiceItem, DashboardAdapter.ServiceViewHolder>(ServiceDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ServiceViewHolder {
         val view = LayoutInflater.from(parent.context)
@@ -24,36 +27,38 @@ class DashboardAdapter(
     }
 
     override fun onBindViewHolder(holder: ServiceViewHolder, position: Int) {
-        val service = getItem(position)
-        holder.name.text = service.title
+        val item = getItem(position)
+        holder.name.text = item.title
+        holder.icon.setImageResource(item.iconRes)
+        holder.icon.setColorFilter(ContextCompat.getColor(holder.itemView.context, R.color.brand_light))
 
-        // Map service ids to appropriate icons (Fallback to help icon).
-        // Uses the stable service id instead of the title so icons keep working
-        // when the display language is switched to Nepali.
-        val iconRes = when (service.id) {
-            1 -> android.R.drawable.ic_menu_info_details      // Citizenship
-            2 -> android.R.drawable.ic_menu_myplaces          // NID
-            3 -> android.R.drawable.ic_menu_agenda            // E-Passport
-            7 -> android.R.drawable.ic_menu_directions        // Driving License
-            else -> android.R.drawable.ic_menu_help
+        holder.progressBar.progress = item.progressPercent
+        holder.progressText.text = if (item.isCompleted) {
+            holder.itemView.context.getString(R.string.dash_progress_completed)
+        } else {
+            holder.itemView.context.getString(
+                R.string.dash_progress_fraction,
+                item.completedSteps,
+                item.totalSteps
+            )
         }
-
-        holder.icon.setImageResource(iconRes)
-        holder.itemView.setOnClickListener { onItemClick(service) }
+        holder.itemView.setOnClickListener { onItemClick(item) }
     }
 
     class ServiceViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val icon: ImageView = view.findViewById(R.id.ivServiceIcon)
         val name: TextView = view.findViewById(R.id.tvServiceName)
+        val progressBar: LinearProgressIndicator = view.findViewById(R.id.piServiceProgress)
+        val progressText: TextView = view.findViewById(R.id.tvServiceProgress)
     }
 }
 
-private class ServiceDiffCallback : DiffUtil.ItemCallback<GovService>() {
-    override fun areItemsTheSame(oldItem: GovService, newItem: GovService): Boolean {
+private class ServiceDiffCallback : DiffUtil.ItemCallback<ServiceItem>() {
+    override fun areItemsTheSame(oldItem: ServiceItem, newItem: ServiceItem): Boolean {
         return oldItem.id == newItem.id
     }
 
-    override fun areContentsTheSame(oldItem: GovService, newItem: GovService): Boolean {
+    override fun areContentsTheSame(oldItem: ServiceItem, newItem: ServiceItem): Boolean {
         return oldItem == newItem
     }
 }

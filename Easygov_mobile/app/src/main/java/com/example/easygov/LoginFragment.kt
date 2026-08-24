@@ -80,7 +80,7 @@ class LoginFragment : Fragment() {
         // Check if user is already logged in
         val existingToken = sessionManager.fetchAuthToken()
         if (existingToken != null) {
-            Toast.makeText(context, "Session Active", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, getString(R.string.login_session_active), Toast.LENGTH_SHORT).show()
         }
 
         btnLogin.setOnClickListener {
@@ -98,9 +98,9 @@ class LoginFragment : Fragment() {
                             onAuthSuccess(response.body()!!)
                         } else {
                             val errorMsg = when (response.code()) {
-                                401 -> "Invalid email or password"
-                                403 -> "Account is deactivated"
-                                else -> "Login failed (${response.code()})"
+                                401 -> getString(R.string.login_invalid_credentials)
+                                403 -> getString(R.string.login_account_deactivated)
+                                else -> getString(R.string.login_failed_code, response.code().toString())
                             }
                             Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                         }
@@ -110,13 +110,13 @@ class LoginFragment : Fragment() {
                         setLoginLoading(btnLogin, loading = false)
                         Toast.makeText(
                             context,
-                            "Network Error: ${t.localizedMessage}",
+                            getString(R.string.login_network_error, t.localizedMessage ?: ""),
                             Toast.LENGTH_LONG
                         ).show()
                     }
                 })
             } else {
-                Toast.makeText(context, "Please enter both email and password", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.login_fill_fields), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -175,10 +175,10 @@ class LoginFragment : Fragment() {
                         onAuthSuccess(response.body()!!)
                     } else {
                         val errorMsg = when (response.code()) {
-                            401 -> "Google Sign-In failed: token rejected"
-                            403 -> "Account is deactivated"
-                            409 -> "This Google account is linked to a different EasyGov account"
-                            else -> "Google Sign-In failed (${response.code()})"
+                            401 -> getString(R.string.login_google_token_rejected)
+                            403 -> getString(R.string.login_account_deactivated)
+                            409 -> getString(R.string.login_google_linked)
+                            else -> getString(R.string.login_google_failed_code, response.code().toString())
                         }
                         Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
                     }
@@ -189,7 +189,7 @@ class LoginFragment : Fragment() {
                     btnGoogleSignIn?.text = getString(R.string.google_sign_in_continue)
                     Toast.makeText(
                         context,
-                        "Network Error: ${t.localizedMessage}",
+                        getString(R.string.login_network_error, t.localizedMessage ?: ""),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -206,7 +206,7 @@ class LoginFragment : Fragment() {
 
         Toast.makeText(
             context,
-            "Welcome back, ${user.fullName}!",
+            getString(R.string.login_welcome_back, user.fullName),
             Toast.LENGTH_LONG
         ).show()
 

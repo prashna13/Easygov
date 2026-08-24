@@ -7,32 +7,31 @@
     android:clickable="true"
     android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardBackgroundColor="@color/card_light"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="1dp"
-    app:strokeColor="@color/divider_light"
-    app:strokeWidth="1dp">
+    app:cardBackgroundColor="@color/surface_light"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="132dp"
+        android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="14dp">
+        android:padding="16dp">
 
         <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:background="@drawable/bg_icon_well"
-            android:padding="10dp">
+            android:padding="12dp">
 
             <ImageView
                 android:id="@+id/ivServiceIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/service_icon"
-                app:srcCompat="@android:drawable/ic_menu_help"
-                app:tint="@color/primary_light" />
+                app:srcCompat="@drawable/ic_service"
+                app:tint="@color/brand_light" />
         </FrameLayout>
 
         <TextView
@@ -45,7 +44,28 @@
             android:text="@string/service_name_placeholder"
             android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceLabelLarge"
-            android:textColor="?attr/colorOnSurface" />
+            android:textColor="@color/text_primary_light"
+            android:textStyle="bold" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/piServiceProgress"
+            style="@style/Widget.Easygov.LinearProgressDeterminate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:max="100"
+            app:indicatorColor="@color/success_light"
+            app:trackColor="@color/surfaceContainer_light" />
+
+        <TextView
+            android:id="@+id/tvServiceProgress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:gravity="center"
+            android:text="@string/dash_progress_zero"
+            android:textAppearance="?attr/textAppearanceBodySmall"
+            android:textColor="@color/text_secondary_light" />
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

@@ -78,6 +78,10 @@ class ApplicationProgressFragment : Fragment() {
             loadApplication()
         }
 
+        view.findViewById<View>(R.id.btnBackProgress).setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         loadApplication()
     }
 

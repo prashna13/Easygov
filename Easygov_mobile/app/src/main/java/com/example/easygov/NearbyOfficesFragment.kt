@@ -71,6 +71,10 @@ class NearbyOfficesFragment : Fragment() {
         serviceType = arguments?.getString(ARG_SERVICE_TYPE) ?: "citizenship"
         val title = arguments?.getString(ARG_TITLE) ?: ""
 
+        view.findViewById<View>(R.id.btnBackOffices).setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         tvNearbyFor = view.findViewById(R.id.tvNearbyFor)
         tvNearbyFor.text = getString(R.string.office_nearby_for, title)
 

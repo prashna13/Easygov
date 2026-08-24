@@ -5,7 +5,10 @@ Authentication helpers: password hashing with bcrypt, JWT token creation,
 and FastAPI dependencies for token verification.
 """
 
+import logging
 import os
+import secrets
+from pathlib import Path
 import bcrypt
 from datetime import datetime, timedelta, timezone
 from typing import Optional
@@ -18,10 +21,38 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User
 
+logger = logging.getLogger(__name__)
+
 # ── JWT CONFIGURATION ─────────────────────────────────────────────────────────
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "easygov_super_secret_key_change_in_production_12345")
+# Prefer an explicit env secret (stable, for production). Otherwise, generate one
+# once and persist it under gitignored db_storage/ so that signing stays stable
+# across restarts — otherwise every restart invalidates all currently-issued
+# tokens and the app surfaces 401 errors everywhere.
+_STORAGE_DIR = Path("db_storage")
+_JWT_SECRET_FILE = _STORAGE_DIR / "jwt_secret"
+
+
+def _load_or_create_jwt_secret() -> str:
+    env_secret = os.getenv("JWT_SECRET_KEY")
+    if env_secret:
+        return env_secret
+    if _JWT_SECRET_FILE.exists():
+        return _JWT_SECRET_FILE.read_text().strip()
+    _STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+    generated = secrets.token_urlsafe(48)
+    _JWT_SECRET_FILE.write_text(generated)
+    logger.warning(
+        "JWT_SECRET_KEY is not set — generated and persisted a secret at %s so "
+        "tokens survive restarts. Back this file up, or set JWT_SECRET_KEY in "
+        "production, or all sessions will be invalidated if it is lost.",
+        _JWT_SECRET_FILE,
+    )
+    return generated
+
+
+SECRET_KEY = _load_or_create_jwt_secret()
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_DAYS = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login", auto_error=False)
 
@@ -49,7 +80,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(days=ACCESS_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)

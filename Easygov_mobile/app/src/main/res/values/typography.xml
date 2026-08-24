@@ -13,6 +13,13 @@
         <item name="android:letterSpacing">0</item>
     </style>
 
+    <style name="TextAppearance.Easygov.AppTitle" parent="TextAppearance.Material3.TitleLarge">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textSize">22sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+
     <style name="TextAppearance.Easygov.BodyLarge" parent="TextAppearance.Material3.BodyLarge">
         <item name="android:fontFamily">sans-serif</item>
         <item name="android:textSize">16sp</item>
@@ -28,6 +35,13 @@
     <style name="TextAppearance.Easygov.LabelLarge" parent="TextAppearance.Material3.LabelLarge">
         <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textSize">14sp</item>
+        <item name="android:letterSpacing">0.01</item>
+    </style>
+
+    <style name="TextAppearance.Easygov.ButtonLabel" parent="TextAppearance.Material3.LabelLarge">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textStyle">bold</item>
         <item name="android:letterSpacing">0.01</item>
     </style>
 </resources>

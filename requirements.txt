@@ -25,3 +25,4 @@ google-auth
 pytest
 httpx
 
+cryptography

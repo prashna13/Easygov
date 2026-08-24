@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -9,41 +10,59 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_header_band"
-        android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingTop="24dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="20dp">
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp"
+        android:paddingTop="8dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp">
 
-        <TextView
-            android:id="@+id/tvNearbyTitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/office_nearby_title"
-            android:textAppearance="?attr/textAppearanceHeadlineMedium"
-            android:textColor="@color/onPrimary_light" />
+        <ImageButton
+            android:id="@+id/btnBackOffices"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/back"
+            android:padding="10dp"
+            app:srcCompat="@drawable/ic_arrow_back"
+            app:tint="@color/text_primary_light" />
 
-        <TextView
-            android:id="@+id/tvNearbyFor"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceBodyMedium"
-            android:textColor="@color/onPrimary_light" />
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/tvOfficeRadiusHint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:background="@drawable/bg_category_tag"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="4dp"
-            android:textAppearance="?attr/textAppearanceLabelMedium"
-            android:textColor="?attr/colorOnSecondaryContainer"
-            android:visibility="gone"
-            tools:text="Showing offices within 20 km" />
+            <TextView
+                android:id="@+id/tvNearbyTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/office_nearby_title"
+                android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
+                android:textColor="@color/text_primary_light" />
+
+            <TextView
+                android:id="@+id/tvNearbyFor"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="?attr/textAppearanceBodyMedium"
+                android:textColor="@color/text_primary_light" />
+
+            <TextView
+                android:id="@+id/tvOfficeRadiusHint"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_category_tag"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="3dp"
+                android:textAppearance="?attr/textAppearanceLabelMedium"
+                android:textColor="@color/onSecondaryContainer_light"
+                android:visibility="gone"
+                tools:text="Showing offices within 20 km" />
+        </LinearLayout>
     </LinearLayout>
 
     <FrameLayout

@@ -1,15 +1,20 @@
 package com.example.easygov
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.core.widget.NestedScrollView
 import androidx.fragment.app.Fragment
+import com.example.easygov.network.RetrofitClient
+import com.google.android.material.chip.Chip
+import com.google.android.material.color.MaterialColors
 import io.noties.markwon.AbstractMarkwonPlugin
 import io.noties.markwon.LinkResolver
 import io.noties.markwon.Markwon
@@ -20,32 +25,37 @@ import retrofit2.Response
 
 class ChatFragment : Fragment() {
 
-    private lateinit var tvChatLog: TextView
+    private lateinit var llChatStack: LinearLayout
+    private lateinit var emptyState: View
     private lateinit var etQuestion: EditText
-    private lateinit var btnSend: Button
-    private lateinit var btnHistory: ImageButton
-    private lateinit var btnNewChat: ImageButton
+    private lateinit var scrollView: NestedScrollView
     private lateinit var markwon: Markwon
-    private var chatAccumulator = ""
+    private var pendingBubble: TextView? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_chat, container, false)
+        return inflater.inflate(R.layout.fragment_chat, container, false)
+    }
 
-        tvChatLog = view.findViewById(R.id.tvChatLog)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        llChatStack = view.findViewById(R.id.llChatStack)
+        emptyState = view.findViewById(R.id.emptyState)
         etQuestion = view.findViewById(R.id.etQuestion)
-        btnSend = view.findViewById(R.id.btnSend)
-        btnHistory = view.findViewById(R.id.btnHistory)
-        btnNewChat = view.findViewById(R.id.btnNewChat)
+        scrollView = view.findViewById(R.id.scrollView)
+
+        val btnSend = view.findViewById<ImageButton>(R.id.btnSend)
+        val btnHistory = view.findViewById<ImageButton>(R.id.btnHistory)
+        val btnNewChat = view.findViewById<ImageButton>(R.id.btnNewChat)
 
         markwon = Markwon.builder(requireContext())
             .usePlugin(object : AbstractMarkwonPlugin() {
                 override fun configureConfiguration(builder: MarkwonConfiguration.Builder) {
-                    // Intercept guide deep-links instead of opening a browser.
-                    builder.linkResolver(LinkResolver { view, link -> handleGuideLink(link) })
+                    builder.linkResolver(LinkResolver { _, link -> handleGuideLink(link) })
                 }
             })
             .build()
@@ -55,70 +65,129 @@ class ChatFragment : Fragment() {
             if (queryText.isNotEmpty()) {
                 executeNetworkQuery(queryText)
             } else {
-                Toast.makeText(context, "Please enter a question", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, getString(R.string.chat_enter_question), Toast.LENGTH_SHORT).show()
             }
         }
 
         btnHistory.setOnClickListener {
-            val historySheet = ChatHistoryBottomSheet()
-            historySheet.show(parentFragmentManager, ChatHistoryBottomSheet.TAG)
+            ChatHistoryBottomSheet().show(parentFragmentManager, ChatHistoryBottomSheet.TAG)
         }
 
-        btnNewChat.setOnClickListener {
-            chatAccumulator = ""
-            tvChatLog.text = getString(R.string.chat_ready)
-            Toast.makeText(context, "New conversation started", Toast.LENGTH_SHORT).show()
-        }
+        btnNewChat.setOnClickListener { resetConversation() }
 
-        return view
+        setupSuggestionChips()
+        checkInitialQuestion()
+    }
+
+    private fun setupSuggestionChips() {
+        val chipSpecs = listOf(
+            R.id.chipSuggestion1 to R.string.suggestion_nid,
+            R.id.chipSuggestion2 to R.string.suggestion_passport,
+            R.id.chipSuggestion3 to R.string.suggestion_license
+        )
+        val root = view ?: return
+        chipSpecs.forEach { (id, stringRes) ->
+            val chip = root.findViewById<Chip>(id) ?: return@forEach
+            chip.setText(stringRes)
+            chip.setOnClickListener { executeNetworkQuery(chip.text.toString()) }
+        }
     }
 
     private fun executeNetworkQuery(userQuestion: String) {
         val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
         if (authToken == null) {
-            Toast.makeText(context, "Please sign in to use the AI assistant", Toast.LENGTH_LONG).show()
+            Toast.makeText(context, getString(R.string.chat_sign_in_required), Toast.LENGTH_LONG).show()
             return
         }
 
-        // Add user question to log
-        if (chatAccumulator.isEmpty()) chatAccumulator = ""
-        chatAccumulator += "\n\n👤 You: $userQuestion\n🤖 EasyGov: Typing..."
-        updateChatDisplay()
+        hideEmptyState()
+        appendMessage(isUser = true, text = userQuestion)
+        val typingBubble = appendMessage(isUser = false, text = getString(R.string.chat_typing))
+        pendingBubble = typingBubble
         etQuestion.text.clear()
 
         val requestPayload = ChatRequest(question = userQuestion)
 
-        com.example.easygov.network.RetrofitClient.apiService.getBotResponse(authToken, requestPayload)
+        RetrofitClient.apiService.getBotResponse(authToken, requestPayload)
             .enqueue(object : Callback<ChatResponse> {
                 override fun onResponse(call: Call<ChatResponse>, response: Response<ChatResponse>) {
+                    val bubble = pendingBubble ?: return
+                    centerTypingBubblePadding(bubble)
                     if (response.isSuccessful && response.body() != null) {
-                        val systemReply = response.body()!!.answer
-                        val guideLink = response.body()!!.guideLink
-                        val guideServiceId = response.body()!!.guideServiceId
-
-                        var replyMarkdown = "🤖 EasyGov:\n$systemReply"
-                        // Show a "View full guide" chip when the backend suggests one.
-                        if (guideLink != null && guideServiceId != null && guideServiceId > 0) {
-                            replyMarkdown += "\n\n[${getString(R.string.chat_view_guide)}](easygov://guide/$guideServiceId)"
+                        val body = response.body()!!
+                        var replyMarkdown = body.answer
+                        if (body.guideLink != null && body.guideServiceId != null && body.guideServiceId > 0) {
+                            replyMarkdown += "\n\n[${getString(R.string.chat_view_guide)}](easygov://guide/${body.guideServiceId})"
                         }
-                        chatAccumulator = chatAccumulator.replace(
-                            "🤖 EasyGov: Typing...",
-                            replyMarkdown
-                        )
-                        updateChatDisplay()
+                        render(bubble, replyMarkdown)
                     } else {
-                        revertTypingState("Error: ${response.code()}")
+                        render(bubble, getString(R.string.chat_error_prefix, response.code().toString()))
                     }
+                    pendingBubble = null
                 }
 
                 override fun onFailure(call: Call<ChatResponse>, t: Throwable) {
-                    revertTypingState("Connection Failed: ${t.localizedMessage}")
+                    val bubble = pendingBubble ?: return
+                    render(bubble, getString(R.string.chat_conn_failed, t.localizedMessage ?: ""))
+                    pendingBubble = null
                 }
             })
     }
 
-    private fun updateChatDisplay() {
-        markwon.setMarkdown(tvChatLog, chatAccumulator)
+    private fun appendMessage(isUser: Boolean, text: String): TextView {
+        val density = resources.displayMetrics.density
+
+        val row = LinearLayout(requireContext())
+        row.orientation = LinearLayout.HORIZONTAL
+        row.gravity = if (isUser) Gravity.END else Gravity.START
+        val rowLp = LinearLayout.LayoutParams(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT
+        )
+        rowLp.bottomMargin = (10 * density).toInt()
+
+        val bubble = TextView(requireContext())
+        bubble.maxWidth = (resources.displayMetrics.widthPixels * 0.78f).toInt()
+        val hPad = (14 * density).toInt()
+        val vPad = (10 * density).toInt()
+        bubble.setPadding(hPad, vPad, hPad, vPad)
+        bubble.setTextSize(15f)
+        bubble.setBackgroundResource(if (isUser) R.drawable.bg_bubble_user else R.drawable.bg_bubble_assistant)
+        if (isUser) {
+            bubble.setTextColor(0xFFFFFFFF.toInt())
+        } else {
+            bubble.setTextColor(MaterialColors.getColor(bubble, com.google.android.material.R.attr.colorOnSurface))
+        }
+
+        bubble.text = text
+        row.addView(bubble)
+        llChatStack.addView(row, rowLp)
+        scrollToBottom()
+        return bubble
+    }
+
+    private fun centerTypingBubblePadding(bubble: TextView) {
+        // no-op placeholder to keep wide markdown (links) readable
+    }
+
+    private fun render(bubble: TextView, markdown: String) {
+        markwon.setMarkdown(bubble, markdown)
+        scrollToBottom()
+    }
+
+    private fun hideEmptyState() {
+        emptyState.visibility = View.GONE
+    }
+
+    private fun resetConversation() {
+        llChatStack.removeAllViews()
+        pendingBubble = null
+        emptyState.visibility = View.VISIBLE
+        Toast.makeText(context, getString(R.string.chat_new_started), Toast.LENGTH_SHORT).show()
+    }
+
+    private fun scrollToBottom() {
+        scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
     }
 
     /** Parses a `easygov://guide/<serviceId>` deep-link and opens the guide. */
@@ -133,9 +202,7 @@ class ChatFragment : Fragment() {
         val detailFragment = ServiceDetailFragment.newInstance(
             serviceId,
             getString(R.string.chat_guide_title),
-            "",
-            null,
-            null
+            ""
         )
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, detailFragment)
@@ -143,20 +210,9 @@ class ChatFragment : Fragment() {
             .commit()
     }
 
-    private fun revertTypingState(errorMessage: String) {
-        chatAccumulator = chatAccumulator.replace("🤖 EasyGov: Typing...", "❌ Error: $errorMessage")
-        updateChatDisplay()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        // Check for initial question passed from Dashboard
-        checkInitialQuestion()
-    }
-
     private fun checkInitialQuestion() {
         arguments?.getString("initial_question")?.let { question ->
-            arguments?.remove("initial_question") // Only process once
+            arguments?.remove("initial_question")
             executeNetworkQuery(question)
         }
     }

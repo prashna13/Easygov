@@ -72,6 +72,10 @@ class ServiceDetailFragment : Fragment() {
             }
         }
 
+        view.findViewById<View>(R.id.btnBackDetail).setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
+
         view.findViewById<View>(R.id.btnFindNearestOffice).setOnClickListener {
             openNearbyOffices(title)
         }
@@ -128,7 +132,7 @@ class ServiceDetailFragment : Fragment() {
         val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken()
         if (authToken == null) {
             isApplying = false
-            Toast.makeText(requireContext(), "Please sign in to start an application.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), getString(R.string.start_app_sign_in), Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -149,7 +153,7 @@ class ServiceDetailFragment : Fragment() {
                         }
                         Toast.makeText(
                             requireContext(),
-                            msg ?: "Could not start application (${response.code()})",
+                            msg ?: getString(R.string.start_app_failed, response.code().toString()),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -159,7 +163,7 @@ class ServiceDetailFragment : Fragment() {
                     isApplying = false
                     Toast.makeText(
                         requireContext(),
-                        "Network failure: ${t.localizedMessage}",
+                        getString(R.string.start_app_network, t.localizedMessage ?: ""),
                         Toast.LENGTH_LONG
                     ).show()
                 }
@@ -235,7 +239,7 @@ class ServiceDetailFragment : Fragment() {
             serviceId: Int,
             title: String,
             category: String,
-            description: String?,
+            description: String? = null,
             guidance: String? = null
         ): ServiceDetailFragment {
             val fragment = ServiceDetailFragment()

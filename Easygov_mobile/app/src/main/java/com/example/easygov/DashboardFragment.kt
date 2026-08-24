@@ -1,18 +1,25 @@
 package com.example.easygov
 
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.DashboardResponse
 import com.example.easygov.model.GovService
+import com.example.easygov.model.ServiceItem
 import com.example.easygov.network.RetrofitClient
+import com.google.android.material.button.MaterialButton
+import com.google.android.material.chip.Chip
+import com.google.android.material.progressindicator.LinearProgressIndicator
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -26,9 +33,28 @@ class DashboardFragment : Fragment() {
     private lateinit var mainContent: View
     private lateinit var errorLayout: View
     private lateinit var tvErrorMessage: TextView
-    private lateinit var btnRetry: Button
+    private lateinit var btnRetry: MaterialButton
+
+    private lateinit var llForYouSection: View
+    private lateinit var llAllServicesSection: View
+
     private lateinit var nextStepBanner: View
     private lateinit var tvNextStepTitle: TextView
+    private lateinit var ivHeroIcon: android.widget.ImageView
+    private lateinit var piHeroProgress: LinearProgressIndicator
+    private lateinit var tvHeroProgress: TextView
+    private lateinit var btnHeroAction: MaterialButton
+
+    private lateinit var chipPriority: Chip
+    private lateinit var chipServices: Chip
+
+    private lateinit var etSearch: EditText
+    private lateinit var tvName: TextView
+
+    private var allServices: List<ServiceItem> = emptyList()
+    private var priorityServices: List<ServiceItem> = emptyList()
+
+    private var heroService: ServiceItem? = null
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -41,111 +67,199 @@ class DashboardFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Initialize Views
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         mainContent = view.findViewById(R.id.mainContent)
         errorLayout = view.findViewById(R.id.errorLayout)
         tvErrorMessage = view.findViewById(R.id.tvErrorMessage)
         btnRetry = view.findViewById(R.id.btnRetry)
+
+        llForYouSection = view.findViewById(R.id.llForYouSection)
+        llAllServicesSection = view.findViewById(R.id.llAllServicesSection)
+
         nextStepBanner = view.findViewById(R.id.nextStepBanner)
         tvNextStepTitle = view.findViewById(R.id.tvNextStepTitle)
+        ivHeroIcon = view.findViewById(R.id.ivHeroIcon)
+        piHeroProgress = view.findViewById(R.id.piHeroProgress)
+        tvHeroProgress = view.findViewById(R.id.tvHeroProgress)
+        btnHeroAction = view.findViewById(R.id.btnHeroAction)
+
+        chipPriority = view.findViewById(R.id.chipPriority)
+        chipServices = view.findViewById(R.id.chipServices)
+        etSearch = view.findViewById(R.id.etSearch)
+        tvName = view.findViewById(R.id.tvDashboardTitle)
 
         val rvDashboard = view.findViewById<RecyclerView>(R.id.rvDashboard)
         val rvRecommendations = view.findViewById<RecyclerView>(R.id.rvRecommendations)
 
-        // Setup RecyclerViews
         rvDashboard.layoutManager = GridLayoutManager(requireContext(), 2)
         rvRecommendations.layoutManager = GridLayoutManager(requireContext(), 2)
 
-        standardAdapter = DashboardAdapter { service -> navigateToDetail(service) }
-        recommendedAdapter = DashboardAdapter { service -> navigateToDetail(service) }
+        standardAdapter = DashboardAdapter(::navigateToDetail)
+        recommendedAdapter = DashboardAdapter(::navigateToDetail)
 
         rvDashboard.adapter = standardAdapter
         rvRecommendations.adapter = recommendedAdapter
 
-        // Setup Refresh Logic
-        swipeRefresh.setOnRefreshListener {
-            fetchDashboardData()
+        btnHeroAction.setOnClickListener { heroService?.let(::navigateToDetail) }
+        nextStepBanner.setOnClickListener { heroService?.let(::navigateToDetail) }
+
+        chipPriority.setOnCheckedChangeListener { _, checked ->
+            llForYouSection.visibility = if (checked) View.VISIBLE else View.GONE
+        }
+        chipServices.setOnCheckedChangeListener { _, checked ->
+            llAllServicesSection.visibility = if (checked) View.VISIBLE else View.GONE
         }
 
+        etSearch.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                applySearchFilter(s?.toString().orEmpty())
+            }
+        })
+
+        swipeRefresh.setOnRefreshListener { fetchDashboardData() }
         btnRetry.setOnClickListener {
             showLoading()
             fetchDashboardData()
         }
 
-        // Initial Fetch
         fetchDashboardData()
     }
 
-    /**
-     * Fetches dashboard data from the FastAPI backend using saved auth token.
-     */
     private fun fetchDashboardData() {
         swipeRefresh.isRefreshing = true
 
         val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken() ?: ""
-        RetrofitClient.apiService.getDashboardData(authToken).enqueue(object : Callback<DashboardResponse> {
-            override fun onResponse(call: Call<DashboardResponse>, response: Response<DashboardResponse>) {
-                swipeRefresh.isRefreshing = false
-                if (response.isSuccessful && response.body() != null) {
-                    val data = response.body()!!
-
-                    if (data.needsOnboarding) {
-                        showContent()
-                        showOnboarding()
-                        return
+        RetrofitClient.apiService.getDashboardData(authToken)
+            .enqueue(object : Callback<DashboardResponse> {
+                override fun onResponse(call: Call<DashboardResponse>, response: Response<DashboardResponse>) {
+                    if (response.isSuccessful && response.body() != null) {
+                        fetchApplications { apps -> bindDashboard(response.body()!!, apps) }
+                    } else {
+                        swipeRefresh.isRefreshing = false
+                        val msg = if (response.code() == 401) getString(R.string.sign_in_required)
+                            else getString(R.string.server_error, response.code().toString())
+                        showError(msg)
                     }
-
-                    showContent()
-                    standardAdapter.submitList(data.services)
-                    recommendedAdapter.submitList(data.recommendations)
-
-                    val tvDashboardTitle = view?.findViewById<TextView>(R.id.tvDashboardTitle)
-                    tvDashboardTitle?.text = getString(R.string.dash_welcome, data.userName)
-
-                    bindNextStepBanner(data.recommendedNextStep)
-                } else {
-                    showError(getString(R.string.server_error, response.code().toString()))
                 }
+
+                override fun onFailure(call: Call<DashboardResponse>, t: Throwable) {
+                    swipeRefresh.isRefreshing = false
+                    showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
+                }
+            })
+    }
+
+    private fun fetchApplications(onDone: (List<ApplicationProgress>) -> Unit) {
+        val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken() ?: run {
+            onDone(emptyList()); return
+        }
+        RetrofitClient.apiService.getApplications(authToken).enqueue(object : Callback<List<ApplicationProgress>> {
+            override fun onResponse(call: Call<List<ApplicationProgress>>, response: Response<List<ApplicationProgress>>) {
+                onDone(response.body() ?: emptyList())
             }
 
-            override fun onFailure(call: Call<DashboardResponse>, t: Throwable) {
-                swipeRefresh.isRefreshing = false
-                showError(getString(R.string.network_failure, t.localizedMessage ?: ""))
+            override fun onFailure(call: Call<List<ApplicationProgress>>, t: Throwable) {
+                onDone(emptyList())
             }
         })
     }
 
-    private fun navigateToDetail(service: GovService) {
+    private fun bindDashboard(data: DashboardResponse, applications: List<ApplicationProgress>) {
+        swipeRefresh.isRefreshing = false
+        if (data.needsOnboarding) {
+            showContent()
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, OnboardingFragment())
+                .addToBackStack(null)
+                .commit()
+            return
+        }
+
+        showContent()
+
+        val recommendedIds = data.recommendations.map { it.id }.toSet()
+        priorityServices = data.recommendations.map { toServiceItem(it, isPriority = true, applications) }
+        allServices = data.services.map { toServiceItem(it, isPriority = it.id in recommendedIds, applications) }
+
+        tvName.text = data.userName
+
+        // Counts on the filter chips.
+        chipPriority.setText(getString(R.string.dash_priority_count_live, priorityServices.size))
+        chipServices.setText(getString(R.string.dash_service_count_live, allServices.size))
+
+        bindHero(data.recommendedNextStep ?: data.recommendations.firstOrNull(), applications)
+
+        applySearchFilter(etSearch.text?.toString().orEmpty())
+    }
+
+    private fun toServiceItem(gs: GovService, isPriority: Boolean, applications: List<ApplicationProgress>): ServiceItem {
+        val app = applications.firstOrNull { it.serviceId == gs.id }
+        val completed = app?.steps?.count { it.status == "COMPLETED" } ?: 0
+        val total = app?.steps?.size ?: DEFAULT_TOTAL_STEPS
+        return ServiceItem(
+            id = gs.id,
+            title = gs.title,
+            category = gs.category,
+            iconRes = iconFor(gs.id),
+            completedSteps = completed,
+            totalSteps = total,
+            isPriority = isPriority
+        )
+    }
+
+    private fun iconFor(id: Int): Int = when (id) {
+        1 -> R.drawable.ic_doc_image          // Citizenship
+        2 -> R.drawable.ic_id_card            // NID
+        3 -> R.drawable.ic_passport           // E-Passport
+        7 -> R.drawable.ic_service            // Driving License
+        else -> R.drawable.ic_service
+    }
+
+    private fun bindHero(nextStep: GovService?, applications: List<ApplicationProgress>) {
+        if (nextStep == null) {
+            nextStepBanner.visibility = View.GONE
+            heroService = null
+            return
+        }
+        heroService = toServiceItem(nextStep, isPriority = true, applications)
+        tvNextStepTitle.text = nextStep.title
+        ivHeroIcon.setImageResource(heroService!!.iconRes)
+        ivHeroIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_light))
+        piHeroProgress.progress = heroService!!.progressPercent
+        tvHeroProgress.text = progressLabel(heroService!!)
+        nextStepBanner.visibility = View.VISIBLE
+    }
+
+    private fun progressLabel(item: ServiceItem): String = if (item.isCompleted) {
+        getString(R.string.dash_progress_completed)
+    } else {
+        getString(R.string.dash_progress_fraction, item.completedSteps, item.totalSteps)
+    }
+
+    private fun applySearchFilter(query: String) {
+        if (query.isBlank()) {
+            standardAdapter.submitList(allServices)
+        } else {
+            val q = query.trim()
+            standardAdapter.submitList(allServices.filter {
+                it.title.contains(q, ignoreCase = true) || it.category.contains(q, ignoreCase = true)
+            })
+        }
+        recommendedAdapter.submitList(priorityServices)
+    }
+
+    private fun navigateToDetail(service: ServiceItem) {
         val detailFragment = ServiceDetailFragment.newInstance(
             service.id,
             service.title,
-            service.category,
-            service.description,
-            service.guidance
+            service.category
         )
-
         parentFragmentManager.beginTransaction()
             .replace(R.id.fragmentContainer, detailFragment)
             .addToBackStack(null)
             .commit()
-    }
-
-    private fun showOnboarding() {
-        parentFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, OnboardingFragment())
-            .addToBackStack(null)
-            .commit()
-    }
-
-    private fun bindNextStepBanner(nextStep: GovService?) {
-        if (nextStep == null) {
-            nextStepBanner.visibility = View.GONE
-            return
-        }
-        tvNextStepTitle.text = nextStep.title
-        nextStepBanner.visibility = View.VISIBLE
-        nextStepBanner.setOnClickListener { navigateToDetail(nextStep) }
     }
 
     private fun showContent() {
@@ -163,5 +277,9 @@ class DashboardFragment : Fragment() {
         mainContent.visibility = View.GONE
         errorLayout.visibility = View.GONE
         swipeRefresh.isRefreshing = true
+    }
+
+    companion object {
+        const val DEFAULT_TOTAL_STEPS = 5
     }
 }

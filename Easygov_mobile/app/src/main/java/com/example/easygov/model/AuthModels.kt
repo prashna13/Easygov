@@ -11,6 +11,7 @@ data class RegisterRequest(
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String,
     @SerializedName("full_name") val fullName: String,
+    @SerializedName("date_of_birth") val dateOfBirth: String,
     @SerializedName("phone") val phone: String? = null,
     @SerializedName("citizenship_number") val citizenshipNumber: String? = null,
     @SerializedName("province") val province: String? = null
