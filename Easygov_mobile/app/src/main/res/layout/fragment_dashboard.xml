@@ -158,6 +158,74 @@
                     </LinearLayout>
                 </HorizontalScrollView>
 
+                <!-- Upload your new document banner -->
+                <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/uploadBanner"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginEnd="20dp"
+                    android:visibility="gone"
+                    app:cardBackgroundColor="@color/success_light"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:strokeWidth="0dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:padding="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/dash_upload_banner_title"
+                                android:textAppearance="?attr/textAppearanceTitleMedium"
+                                android:textColor="@color/text_primary_light"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvUploadBannerMsg"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/dash_upload_banner_msg"
+                                android:textAppearance="?attr/textAppearanceBodyMedium"
+                                android:textColor="@color/text_secondary_light" />
+                        </LinearLayout>
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnUploadBanner"
+                            style="@style/Widget.Easygov.Button"
+                            android:layout_width="wrap_content"
+                            android:layout_height="44dp"
+                            android:layout_marginStart="8dp"
+                            android:text="@string/upload_now" />
+
+                        <TextView
+                            android:id="@+id/btnDismissBanner"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:clickable="true"
+                            android:focusable="true"
+                            android:padding="8dp"
+                            android:text="@string/close"
+                            android:textAppearance="?attr/textAppearanceTitleMedium"
+                            android:textColor="@color/text_secondary_light" />
+                    </LinearLayout>
+                </com.google.android.material.card.MaterialCardView>
+
                 <!-- Hero recommendation card -->
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/nextStepBanner"

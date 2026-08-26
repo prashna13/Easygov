@@ -40,6 +40,7 @@ def _office_out(office: DBGovernmentOffice, distance_km: Optional[float] = None)
         phone=office.phone,
         hours=office.hours,
         distance_km=distance_km,
+        note=office.note,
     )
 
 

@@ -62,6 +62,15 @@
     <string name="app_completed">Application Completed</string>
     <string name="app_completed_msg">Congratulations! You have completed every step. Keep your confirmation safe and follow any further instructions from the responsible office.</string>
     <string name="app_done_hint">Every step is done — this application is complete.</string>
+    <string name="upload_new_doc">Upload your new document to your vault</string>
+    <string name="upload_doc_prompt_title">Save your new document</string>
+    <string name="upload_doc_prompt_msg">You\'ve completed %1$s. Upload the document you just received into your vault so it\'s saved for future use.</string>
+    <string name="upload_now">Upload now</string>
+    <string name="later">Later</string>
+    <string name="doc_uploaded_vault">Document saved to your vault.</string>
+    <string name="close">✕</string>
+    <string name="dash_upload_banner_title">Save your new document</string>
+    <string name="dash_upload_banner_msg">You completed %1$s — upload the document you just received to your vault for future use.</string>
     <string name="checklist">Checklist</string>
     <string name="checklist_msg">Mark each step as you complete it to track your progress.</string>
     <string name="app_load_error">Could not load this application. Please try again.</string>

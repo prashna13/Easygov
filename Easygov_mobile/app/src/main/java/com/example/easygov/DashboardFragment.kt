@@ -1,6 +1,9 @@
 package com.example.easygov
 
+import android.content.Context
+import android.net.Uri
 import android.os.Bundle
+import android.provider.OpenableColumns
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.LayoutInflater
@@ -8,6 +11,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.TextView
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,10 +21,15 @@ import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.DashboardResponse
 import com.example.easygov.model.GovService
 import com.example.easygov.model.ServiceItem
+import com.example.easygov.model.UserDocument
 import com.example.easygov.network.RetrofitClient
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.chip.Chip
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
+import okhttp3.MediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -48,6 +58,11 @@ class DashboardFragment : Fragment() {
     private lateinit var chipPriority: Chip
     private lateinit var chipServices: Chip
 
+    private lateinit var uploadBanner: View
+    private lateinit var tvUploadBannerMsg: TextView
+    private lateinit var btnUploadBanner: MaterialButton
+    private lateinit var btnDismissBanner: View
+
     private lateinit var etSearch: EditText
     private lateinit var tvName: TextView
 
@@ -55,6 +70,13 @@ class DashboardFragment : Fragment() {
     private var priorityServices: List<ServiceItem> = emptyList()
 
     private var heroService: ServiceItem? = null
+    private var bannerAppId: Int = -1
+    private var bannerServiceTitle: String = ""
+
+    private val pickDocument =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) showLabelDialog(uri)
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -85,6 +107,10 @@ class DashboardFragment : Fragment() {
 
         chipPriority = view.findViewById(R.id.chipPriority)
         chipServices = view.findViewById(R.id.chipServices)
+        uploadBanner = view.findViewById(R.id.uploadBanner)
+        tvUploadBannerMsg = view.findViewById(R.id.tvUploadBannerMsg)
+        btnUploadBanner = view.findViewById(R.id.btnUploadBanner)
+        btnDismissBanner = view.findViewById(R.id.btnDismissBanner)
         etSearch = view.findViewById(R.id.etSearch)
         tvName = view.findViewById(R.id.tvDashboardTitle)
 
@@ -102,6 +128,12 @@ class DashboardFragment : Fragment() {
 
         btnHeroAction.setOnClickListener { heroService?.let(::navigateToDetail) }
         nextStepBanner.setOnClickListener { heroService?.let(::navigateToDetail) }
+
+        btnUploadBanner.setOnClickListener { pickDocument.launch("*/*") }
+        btnDismissBanner.setOnClickListener {
+            dismissApp(bannerAppId)
+            uploadBanner.visibility = View.GONE
+        }
 
         chipPriority.setOnCheckedChangeListener { _, checked ->
             llForYouSection.visibility = if (checked) View.VISIBLE else View.GONE
@@ -191,7 +223,25 @@ class DashboardFragment : Fragment() {
 
         bindHero(data.recommendedNextStep ?: data.recommendations.firstOrNull(), applications)
 
+        bindUploadBanner(applications)
+
         applySearchFilter(etSearch.text?.toString().orEmpty())
+    }
+
+    private fun bindUploadBanner(applications: List<ApplicationProgress>) {
+        val dismissed = dismissedAppIds()
+        val completed = applications.firstOrNull {
+            it.status == "COMPLETED" && it.applicationId != -1 && it.applicationId !in dismissed
+        }
+        if (completed == null) {
+            uploadBanner.visibility = View.GONE
+            bannerAppId = -1
+            return
+        }
+        bannerAppId = completed.applicationId
+        bannerServiceTitle = completed.serviceTitle
+        tvUploadBannerMsg.text = getString(R.string.dash_upload_banner_msg, completed.serviceTitle)
+        uploadBanner.visibility = View.VISIBLE
     }
 
     private fun toServiceItem(gs: GovService, isPriority: Boolean, applications: List<ApplicationProgress>): ServiceItem {
@@ -277,6 +327,102 @@ class DashboardFragment : Fragment() {
         mainContent.visibility = View.GONE
         errorLayout.visibility = View.GONE
         swipeRefresh.isRefreshing = true
+    }
+
+    // ── Upload banner (save a newly completed service's document) ─────────────
+
+    private val bannerPrefs by lazy {
+        requireContext().getSharedPreferences("easygov_banner_prefs", Context.MODE_PRIVATE)
+    }
+
+    private fun dismissedAppIds(): Set<Int> =
+        bannerPrefs.getString("dismissed_app_ids", "")
+            ?.split(",")
+            ?.mapNotNull { it.toIntOrNull() }
+            ?.toSet()
+            ?: emptySet()
+
+    private fun dismissApp(appId: Int) {
+        if (appId <= 0) return
+        val set = dismissedAppIds().toMutableSet()
+        set.add(appId)
+        bannerPrefs.edit().putString("dismissed_app_ids", set.joinToString(",")).apply()
+    }
+
+    private fun showLabelDialog(uri: Uri) {
+        val input = EditText(requireContext()).apply {
+            hint = getString(R.string.doc_pick_label)
+            setText(bannerServiceTitle)
+        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.doc_upload)
+            .setView(input)
+            .setNegativeButton(R.string.doc_cancel, null)
+            .setPositiveButton(R.string.doc_upload_btn) { _, _ ->
+                val label = input.text.toString().trim()
+                if (label.isEmpty()) {
+                    Toast.makeText(requireContext(), getString(R.string.doc_pick_label), Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
+                uploadDocument(uri, label)
+            }
+            .show()
+    }
+
+    private fun uploadDocument(uri: Uri, label: String) {
+        val authToken = SessionManager.getInstance(requireContext()).fetchAuthToken() ?: return
+        val resolver = requireContext().contentResolver
+        val filename = resolveFilename(uri)
+        val mime = resolver.getType(uri) ?: guessMimeFromFilename(filename)
+        val bytes = resolver.openInputStream(uri)?.readBytes() ?: return
+
+        Toast.makeText(requireContext(), getString(R.string.doc_uploading), Toast.LENGTH_SHORT).show()
+
+        val fileBody = RequestBody.create(MediaType.parse(mime) ?: MediaType.parse("application/octet-stream"), bytes)
+        val filePart = MultipartBody.Part.createFormData("file", filename, fileBody)
+        val labelBody = RequestBody.create(MediaType.parse("text/plain"), label)
+        val tagsBody = RequestBody.create(MediaType.parse("text/plain"), bannerServiceTitle.lowercase())
+        val descriptionBody = RequestBody.create(
+            MediaType.parse("text/plain"),
+            "Uploaded after completing $bannerServiceTitle"
+        )
+
+        RetrofitClient.apiService.uploadDocument(authToken, labelBody, tagsBody, descriptionBody, filePart)
+            .enqueue(object : Callback<UserDocument> {
+                override fun onResponse(call: Call<UserDocument>, response: Response<UserDocument>) {
+                    if (response.isSuccessful && response.body() != null) {
+                        Toast.makeText(requireContext(), getString(R.string.doc_uploaded_vault), Toast.LENGTH_SHORT).show()
+                        dismissApp(bannerAppId)
+                        uploadBanner.visibility = View.GONE
+                    } else {
+                        Toast.makeText(requireContext(), getString(R.string.doc_upload_fail), Toast.LENGTH_LONG).show()
+                    }
+                }
+
+                override fun onFailure(call: Call<UserDocument>, t: Throwable) {
+                    Toast.makeText(requireContext(), getString(R.string.doc_upload_fail), Toast.LENGTH_LONG).show()
+                }
+            })
+    }
+
+    private fun resolveFilename(uri: Uri): String {
+        requireContext().contentResolver.query(
+            uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val name = cursor.getString(0)
+                if (!name.isNullOrBlank()) return name
+            }
+        }
+        return uri.lastPathSegment ?: "document"
+    }
+
+    private fun guessMimeFromFilename(filename: String): String = when {
+        filename.endsWith(".pdf", ignoreCase = true) -> "application/pdf"
+        filename.endsWith(".png", ignoreCase = true) -> "image/png"
+        filename.endsWith(".webp", ignoreCase = true) -> "image/webp"
+        filename.endsWith(".heic", ignoreCase = true) -> "image/heic"
+        else -> "image/jpeg"
     }
 
     companion object {

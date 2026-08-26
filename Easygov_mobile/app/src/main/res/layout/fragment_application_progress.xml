@@ -164,6 +164,14 @@
                     android:text="@string/app_completed_msg"
                     android:textAppearance="?attr/textAppearanceBodyMedium"
                     android:textColor="?attr/colorOnSurfaceVariant" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnUploadCompletedDoc"
+                    style="@style/Widget.Easygov.Button"
+                    android:layout_width="match_parent"
+                    android:layout_height="48dp"
+                    android:layout_marginTop="18dp"
+                    android:text="@string/upload_new_doc" />
             </LinearLayout>
 
             <LinearLayout

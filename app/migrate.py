@@ -51,6 +51,9 @@ ADD_COLUMNS = {
         "step_name_ne":         "VARCHAR(200)",
         "step_description_ne":  "TEXT",
     },
+    "government_offices": {
+        "note": "TEXT",
+    },
 }
 
 

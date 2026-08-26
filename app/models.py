@@ -395,6 +395,8 @@ class GovernmentOffice(Base):
         longitude     : WGS84 longitude
         phone         : Published contact number (optional)
         hours         : Published service hours (optional, e.g. "10:00–17:00 Sun–Fri")
+        note          : Optional guidance shown with the office (e.g. which body
+                        handles a particular service type)
         is_active     : Soft-enable flag (False = hidden from results)
     """
     __tablename__ = "government_offices"
@@ -410,6 +412,7 @@ class GovernmentOffice(Base):
     longitude    = Column(Float, nullable=False)
     phone        = Column(String(50), nullable=True)
     hours        = Column(String(100), nullable=True)
+    note         = Column(Text, nullable=True)
     is_active    = Column(Boolean, default=True, nullable=False)
 
     def __repr__(self):

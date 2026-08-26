@@ -64,17 +64,12 @@ class LoginFragment : Fragment() {
         val btnLogin = view.findViewById<Button>(R.id.btnLogin)
         val btnGoogleSignIn = view.findViewById<Button>(R.id.btnGoogleSignIn)
         val tvSignUp = view.findViewById<TextView>(R.id.tvSignUp)
-        val btnChangeServerUrl = view.findViewById<TextView>(R.id.btnChangeServerUrl)
 
         tvSignUp.setOnClickListener {
             parentFragmentManager.beginTransaction()
                 .replace(R.id.fragmentContainer, RegisterFragment())
                 .addToBackStack(null)
                 .commit()
-        }
-
-        btnChangeServerUrl.setOnClickListener {
-            ServerUrlDialog.show(requireContext())
         }
 
         // Check if user is already logged in

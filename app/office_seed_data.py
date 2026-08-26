@@ -16,6 +16,7 @@ TAG_CITIZENSHIP = "citizenship,identity"
 TAG_NID = "nid,identity"
 TAG_PASSPORT = "passport,identity"
 TAG_DRIVING = "driving_license,transport"
+TAG_BUSINESS_REGISTRATION = "business_registration,business"
 
 
 GOVERNMENT_OFFICES = [
@@ -630,5 +631,84 @@ GOVERNMENT_OFFICES = [
         "longitude": 83.9659,
         "phone": "061-431112",
         "hours": "10:00–17:00 (Sun–Fri)",
+    },
+
+    # ── COMPANY & INDUSTRY REGISTRATION (business registration) ────────────────
+    {
+        "name": "Office of the Company Registrar (OCR)",
+        "name_ne": "कम्पनी रजिष्ट्रारको कार्यालय",
+        "office_type": "Company Registrar Office",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Kathmandu",
+        "address": "Tripureshwor, Kathmandu",
+        "latitude": 27.6953,
+        "longitude": 85.3148,
+        "phone": "01-5367256",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+        "note": "Primary body for company incorporation (Memorandum & Articles, certificate).",
+    },
+    {
+        "name": "Department of Industry (DoI)",
+        "name_ne": "उद्योग विभाग",
+        "office_type": "Department of Industry",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Kathmandu",
+        "address": "Tripureshwor, Kathmandu",
+        "latitude": 27.6942,
+        "longitude": 85.3135,
+        "phone": "01-5356212",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+        "note": "Approvals for industrial / foreign-investment (FDI) enterprises.",
+    },
+    {
+        "name": "Department of Commerce, Supplies and Consumer Protection",
+        "name_ne": "वाणिज्य, आपूर्ति तथा उपभोक्ता संरक्षण विभाग",
+        "office_type": "Department of Commerce",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Kathmandu",
+        "address": "Babarmahal, Kathmandu",
+        "latitude": 27.6908,
+        "longitude": 85.3242,
+        "phone": "01-5343939",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+    },
+    {
+        "name": "Industry and Commerce Office - Kathmandu (CSIO)",
+        "name_ne": "उद्योग तथा वाणिज्य कार्यालय, काठमाडौँ",
+        "office_type": "CSIO / Cottage & Small Industry Office",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Kathmandu",
+        "address": "Tripureshwor, Kathmandu",
+        "latitude": 27.6948,
+        "longitude": 85.3139,
+        "phone": "01-5359875",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+        "note": "Cottage & small industry registration is handled by dedicated Industry and Commerce Offices (CSIO), not the Company Registrar.",
+    },
+    {
+        "name": "Industry and Commerce Office - Lalitpur (CSIO)",
+        "name_ne": "उद्योग तथा वाणिज्य कार्यालय, ललितपुर",
+        "office_type": "CSIO / Cottage & Small Industry Office",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Lalitpur",
+        "address": "Patan Industrial Estate, Lagankhel, Lalitpur",
+        "latitude": 27.6669,
+        "longitude": 85.3225,
+        "phone": "01-5423452",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+        "note": "Cottage & small industry registration is handled by dedicated Industry and Commerce Offices (CSIO), not the Company Registrar.",
+    },
+    {
+        "name": "Industry and Commerce Office - Bhaktapur (CSIO)",
+        "name_ne": "उद्योग तथा वाणिज्य कार्यालय, भक्तपुर",
+        "office_type": "CSIO / Cottage & Small Industry Office",
+        "service_tags": TAG_BUSINESS_REGISTRATION,
+        "district": "Bhaktapur",
+        "address": "Byasi / Sallaghari, Bhaktapur",
+        "latitude": 27.6740,
+        "longitude": 85.4215,
+        "phone": "01-6610488",
+        "hours": "10:00–17:00 (Sun–Thu), 10:00–15:00 (Fri)",
+        "note": "Cottage & small industry registration is handled by dedicated Industry and Commerce Offices (CSIO), not the Company Registrar.",
     },
 ]

@@ -1,6 +1,7 @@
 package com.example.easygov.network
 
 import android.content.Context
+import com.example.easygov.BuildConfig
 import com.example.easygov.LocaleManager
 import com.example.easygov.SessionManager
 import okhttp3.OkHttpClient
@@ -16,10 +17,9 @@ import java.util.concurrent.TimeUnit
  * (read from [LocaleManager]) so the server returns localized content.
  */
 object RetrofitClient {
-    // Android Emulator reaches the host PC's localhost via 10.0.2.2.
-    // On a physical phone (same Wi-Fi), change the base URL from the app's
-    // Login or Profile screen to your PC's LAN IP, e.g. "http://192.168.1.72:8000/".
-    private const val DEFAULT_BASE_URL = "http://10.0.2.2:8000/"
+    // The backend address is set at build time by the admin (BuildConfig.BASE_URL,
+    // configurable via -Peasygov.baseUrl), so end users never change it in the app.
+    private const val DEFAULT_BASE_URL = BuildConfig.BASE_URL
     private const val PREFS_NAME = "easygov_server_prefs"
     private const val KEY_BASE_URL = "base_url"
 

@@ -2,6 +2,12 @@ plugins {
     alias(libs.plugins.android.application)
 }
 
+// Admin-configured backend URL, baked into the APK at build time so users never
+// change it in the app. Override per build: ./gradlew :app:assembleDebug -Peasygov.baseUrl=http://192.168.1.72:8000/
+val easygovBaseUrl: String =
+    (project.findProperty("easygov.baseUrl") as? String)?.trim()?.takeIf { it.isNotEmpty() }
+        ?: "http://10.0.2.2:8000/"
+
 android {
     namespace = "com.example.easygov"
     compileSdk {
@@ -18,6 +24,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "BASE_URL", "\"$easygovBaseUrl\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {

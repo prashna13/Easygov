@@ -49,6 +49,15 @@
     <string name="app_completed">आवेदन पूरा भयो</string>
     <string name="app_completed_msg">बधाई छ! तपाईंले हरेक चरण पूरा गर्नुभयो। आफ्नो रसिद सुरक्षित राख्नुहोस् र जिम्मेवार कार्यालयका थप निर्देशनहरू पालना गर्नुहोस्।</string>
     <string name="app_done_hint">हरेक चरण पूरा भयो — यो आवेदन सम्पन्न भएको छ।</string>
+    <string name="upload_new_doc">आफ्नो नयाँ कागजात भल्टमा अपलोड गर्नुहोस्</string>
+    <string name="upload_doc_prompt_title">आफ्नो नयाँ कागजात सुरक्षित गर्नुहोस्</string>
+    <string name="upload_doc_prompt_msg">तपाईंले %1$s पूरा गर्नुभयो। भविष्यमा प्रयोगका लागि भल्टमा राख्न भर्खरै प्राप्त कागजात अपलोड गर्नुहोस्।</string>
+    <string name="upload_now">अहिले अपलोड गर्नुहोस्</string>
+    <string name="later">पछि</string>
+    <string name="doc_uploaded_vault">कागजात तपाईंको भल्टमा सुरक्षित भयो।</string>
+    <string name="close">✕</string>
+    <string name="dash_upload_banner_title">आफ्नो नयाँ कागजात सुरक्षित गर्नुहोस्</string>
+    <string name="dash_upload_banner_msg">तपाईंले %1$s पूरा गर्नुभयो — भविष्यमा प्रयोगका लागि भल्टमा राख्न भर्खरै प्राप्त कागजात अपलोड गर्नुहोस्।</string>
     <string name="checklist">चेकलिस्ट</string>
     <string name="checklist_msg">आफ्नो प्रगति ट्र्याक गर्न प्रत्येक चरण सम्पन्न गर्दा चिन्ह लगाउनुहोस्।</string>
     <string name="app_load_error">यो आवेदन लोड गर्न सकिएन। कृपया फेरि प्रयास गर्नुहोस्।</string>

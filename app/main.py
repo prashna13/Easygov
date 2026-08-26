@@ -36,6 +36,7 @@ from app.schemas import (
     DashboardOut, GovServiceOut, ChatHistoryOut, AskResponse,
     OnboardingRequest, OnboardingResponse, ServiceDetailOut,
     ApplicationOut, ProgressStepOut, DocumentOut, DocumentUpdate,
+    AdminServiceSummary, AdminServiceUpdate, AdminIngestResult,
 )
 from app.auth_utils import (
     hash_password, verify_password, create_access_token,
@@ -45,20 +46,36 @@ from app.ask_utils import (
     SYSTEM_PROMPTS, parse_ask_json, build_ask_response, resolve_guide_service,
 )
 from app.doc_crypto import encrypt_bytes, decrypt_bytes
+from app.admin_utils import (
+    require_admin,
+    reindex_service_guidance,
+    ingest_uploaded_document,
+)
 
 load_dotenv()
 
 app = FastAPI(title="EasyGov Nepal API")
 
-# 1. Setup the same Local Embeddings as Day 2
-model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-embeddings = HuggingFaceEmbeddings(model_name=model_name)
+# Tests set EASYGOV_LITE=1 to skip loading the heavyweight ML stack (embeddings,
+# Chroma, LLM) so the test suite stays fast and offline. The /ask, admin
+# reindex and ingest routes still work normally at runtime (flag off by default);
+# they simply are not exercised by the isolated unit/integration suite.
+_LITE = os.getenv("EASYGOV_LITE", "").strip() == "1"
 
-# 2. Load the existing ChromaDB from disk
-vector_db = Chroma(
-    persist_directory="db_storage/chroma_db",
-    embedding_function=embeddings
-)
+embeddings = None
+vector_db = None
+llm = None
+
+if not _LITE:
+    # 1. Setup the same Local Embeddings as Day 2
+    model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+    embeddings = HuggingFaceEmbeddings(model_name=model_name)
+
+    # 2. Load the existing ChromaDB from disk
+    vector_db = Chroma(
+        persist_directory="db_storage/chroma_db",
+        embedding_function=embeddings,
+    )
 
 # 3. Initialize OpenRouter LLM
 openrouter_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b")
@@ -66,18 +83,20 @@ openrouter_base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/ap
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
 print(f"[EasyGov] Using OpenRouter model: {openrouter_model} @ {openrouter_base_url}")
 
-llm = ChatOpenAI(
-    model=openrouter_model,
-    base_url=openrouter_base_url,
-    api_key=openrouter_api_key,
-    temperature=0.2,
-)
+if not _LITE:
+    llm = ChatOpenAI(
+        model=openrouter_model,
+        base_url=openrouter_base_url,
+        api_key=openrouter_api_key,
+        temperature=0.2,
+    )
 
 # 4. Retrieval settings (RAG)
 retriever_k = int(os.getenv("RETRIEVER_K", "6"))
 
-# 5. User document storage
-DOC_STORAGE_DIR = Path("db_storage/documents")
+# 5. User document storage — path is env-configurable so tests can redirect it
+# to a temp dir and never touch the real db_storage/documents folder.
+DOC_STORAGE_DIR = Path(os.getenv("EASYGOV_DOC_STORAGE", "db_storage/documents"))
 DOC_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 # 6. Minimum age (years) required to register — official documents need 16+
@@ -530,6 +549,37 @@ def _user_doc_dir(user_id: int) -> Path:
 
 # ── RAG CHATBOT ENDPOINT ──────────────────────────────────────────────────────
 
+def _extract_llm_text(result) -> str:
+    """Robustly pull the text out of an LLM response.
+
+    Some reasoning models (e.g. gpt-oss-120b) return an AIMessage whose
+    `.content` is empty and put the prose in a reasoning/extra field. Without
+    this we'd fall back to `str(result)`, dumping the whole object into the UI.
+    """
+    content = getattr(result, "content", None)
+    if isinstance(content, list):
+        content = "\n".join(
+            str(part.get("text", part)) if isinstance(part, dict) else str(part)
+            for part in content
+        )
+    text = (content or "").strip()
+    if text:
+        return text
+
+    for attr in ("reasoning_content",):
+        val = getattr(result, attr, None)
+        if val:
+            return str(val).strip()
+
+    extra = getattr(result, "additional_kwargs", {}) or {}
+    for key in ("content", "reasoning_content", "reasoning"):
+        val = extra.get(key)
+        if val:
+            return str(val).strip()
+
+    return ""
+
+
 @app.post("/ask", response_model=AskResponse)
 async def ask_government_bot(
     request: QueryRequest,
@@ -587,11 +637,16 @@ async def ask_government_bot(
         prompt = prompt.replace("{context}", context).replace("{question}", user_question)
 
         llm_result = llm.invoke(prompt)
-        raw_answer = getattr(llm_result, "content", None) or str(llm_result)
+        raw_answer = _extract_llm_text(llm_result)
 
         # Parse the JSON reply, falling back to the raw text if malformed.
         parsed = parse_ask_json(raw_answer)
-        answer_text = parsed.get("answer") or raw_answer
+        answer_text = (parsed.get("answer") or raw_answer).strip()
+        if not answer_text:
+            answer_text = (
+                "I couldn't find a clear answer. Please rephrase your question, "
+                "or open the relevant guide for the full details."
+            )
 
         if current_user is not None:
             # Persist only the answer text (never the raw JSON) so history
@@ -990,6 +1045,123 @@ app.include_router(offices_router)
 from app.google_auth import router as google_auth_router  # noqa: E402
 
 app.include_router(google_auth_router)
+
+
+# ── ADMIN PORTAL ──────────────────────────────────────────────────────────────
+
+@app.get("/admin/services", response_model=List[AdminServiceSummary])
+def admin_list_services(
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    """List all services (active + inactive) for the admin dropdown."""
+    rows = db.query(DBGovService).order_by(DBGovService.title).all()
+    return [
+        AdminServiceSummary(
+            id=s.id,
+            title=s.title,
+            category=s.category,
+            is_active=s.is_active,
+        )
+        for s in rows
+    ]
+
+
+@app.post("/admin/services/{service_id}", response_model=AdminIngestResult)
+def admin_update_service(
+    service_id: int,
+    payload: AdminServiceUpdate,
+    db: Session = Depends(get_db),
+    _: bool = Depends(require_admin),
+):
+    """Update a service's catalog fields; optionally re-index guidance into RAG."""
+    svc = db.query(DBGovService).filter(DBGovService.id == service_id).first()
+    if not svc:
+        raise HTTPException(status_code=404, detail="Service not found")
+
+    title_changed = False
+    if payload.title is not None:
+        svc.title = payload.title.strip()
+        title_changed = True
+    if payload.title_ne is not None:
+        svc.title_ne = payload.title_ne.strip()
+    if payload.category is not None:
+        svc.category = payload.category.strip()
+    if payload.category_ne is not None:
+        svc.category_ne = payload.category_ne.strip()
+    if payload.description is not None:
+        svc.description = payload.description.strip() or None
+    if payload.description_ne is not None:
+        svc.description_ne = payload.description_ne.strip() or None
+    if payload.guidance is not None:
+        svc.guidance = payload.guidance.strip() or None
+    if payload.guidance_ne is not None:
+        svc.guidance_ne = payload.guidance_ne.strip() or None
+    if payload.department is not None:
+        svc.department = payload.department.strip()
+    if payload.estimated_days is not None:
+        svc.estimated_days = payload.estimated_days
+    if payload.fee_npr is not None:
+        svc.fee_npr = int(payload.fee_npr)
+    if payload.is_active is not None:
+        svc.is_active = payload.is_active
+
+    db.commit()
+    db.refresh(svc)
+
+    folder = svc.title.lower().replace(" ", "_")
+    if payload.reindex_rag and (svc.guidance or svc.guidance_ne):
+        result = reindex_service_guidance(svc, folder, embeddings, vector_db)
+        return AdminIngestResult(
+            service=folder,
+            version="guidance",
+            indexed=result.get("indexed", 0),
+            stats=result.get("stats"),
+            message=result.get("message"),
+        )
+
+    return AdminIngestResult(
+        service=folder,
+        version="guidance",
+        indexed=0,
+        stats=None,
+        message="Saved. RAG is unchanged — use the 'RAG Ingest' tab to update the chatbot's knowledge.",
+    )
+
+
+@app.post("/admin/ingest", response_model=AdminIngestResult)
+def admin_ingest_document(
+    service: str = Form(...),
+    version: Optional[str] = Form("1.0"),
+    replace_previous: bool = Form(False),
+    file: UploadFile = File(...),
+    _: bool = Depends(require_admin),
+):
+    """Upload a new/updated RAG source document (PDF/MD) for a service."""
+    service_folder = (service or "").strip().lower().replace(" ", "_")
+    if not service_folder:
+        raise HTTPException(status_code=422, detail="A service folder is required.")
+
+    data = file.file.read()
+    if not data:
+        raise HTTPException(status_code=422, detail="Uploaded file is empty.")
+
+    result = ingest_uploaded_document(
+        service=service_folder,
+        filename=file.filename or "document",
+        data=data,
+        version=version or "1.0",
+        replace_previous=replace_previous,
+        embeddings=embeddings,
+        vector_db=vector_db,
+    )
+    return AdminIngestResult(
+        service=service_folder,
+        version=version or "1.0",
+        indexed=result.get("indexed", 0),
+        stats=result.get("stats"),
+        message=result.get("message"),
+    )
 
 
 if __name__ == "__main__":

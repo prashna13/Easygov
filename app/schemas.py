@@ -209,6 +209,42 @@ class GovernmentOfficeOut(BaseModel):
     # Straight-line (haversine) distance from the query point, in kilometres.
     # Only populated by the /offices/nearby endpoint.
     distance_km: Optional[float] = None
+    note: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+# ── ADMIN SCHEMAS ──────────────────────────────────────────────────────────────
+
+class AdminServiceSummary(BaseModel):
+    """Lightweight listing of a service for the admin dropdown."""
+    id: int
+    title: str
+    category: str
+    is_active: bool
+
+
+class AdminServiceUpdate(BaseModel):
+    """Editable catalog fields. Field is only updated when provided."""
+    title: Optional[str] = None
+    title_ne: Optional[str] = None
+    category: Optional[str] = None
+    category_ne: Optional[str] = None
+    description: Optional[str] = None
+    description_ne: Optional[str] = None
+    guidance: Optional[str] = None
+    guidance_ne: Optional[str] = None
+    department: Optional[str] = None
+    estimated_days: Optional[int] = None
+    fee_npr: Optional[int] = None
+    is_active: Optional[bool] = None
+    reindex_rag: bool = False
+
+
+class AdminIngestResult(BaseModel):
+    service: str
+    version: Optional[str] = None
+    indexed: int
+    stats: Optional[dict] = None
+    message: Optional[str] = None
