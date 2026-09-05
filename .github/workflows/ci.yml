@@ -84,3 +84,4 @@ jobs:
           arch: x86_64
           profile: pixel_6
           script: ./gradlew :app:connectedDebugAndroidTest
+          working-directory: Easygov_mobile
