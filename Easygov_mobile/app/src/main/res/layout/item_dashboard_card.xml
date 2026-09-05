@@ -9,7 +9,7 @@
     android:foreground="?attr/selectableItemBackground"
     app:cardBackgroundColor="@color/surface_light"
     app:cardCornerRadius="16dp"
-    app:cardElevation="2dp"
+    app:cardElevation="1dp"
     app:strokeWidth="0dp">
 
     <LinearLayout
@@ -17,28 +17,28 @@
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
         <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp"
-            android:background="@drawable/bg_icon_well"
-            android:padding="12dp">
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:background="@drawable/bg_icon_circle_neutral">
 
             <ImageView
                 android:id="@+id/ivServiceIcon"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@string/service_icon"
+                android:padding="14dp"
                 app:srcCompat="@drawable/ic_service"
-                app:tint="@color/brand_light" />
+                app:tint="@color/white" />
         </FrameLayout>
 
         <TextView
             android:id="@+id/tvServiceName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:ellipsize="end"
             android:maxLines="2"
             android:text="@string/service_name_placeholder"
@@ -52,10 +52,10 @@
             style="@style/Widget.Easygov.LinearProgressDeterminate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
+            android:layout_marginTop="10dp"
             android:max="100"
-            app:indicatorColor="@color/success_light"
-            app:trackColor="@color/surfaceContainer_light" />
+            app:indicatorColor="@color/brand_light"
+            app:trackColor="@color/surfaceVariant_light" />
 
         <TextView
             android:id="@+id/tvServiceProgress"

@@ -76,3 +76,45 @@ a few minutes.
   `app/seed_data.py` and the ingested `data_source/` documents.
 - **Reproducibility**: run with a fixed dataset and `--no-baseline` for the first
   full run; then commit `baseline.json` and re-run to detect regressions.
+
+---
+
+## Latest results
+
+Run of the full 31-item dataset (LLM-judged metrics), after fixing the duplicate/
+untagged-chunk bug, aligning passport references to sources, correcting the
+E-Passport guidance, and adding adaptive retrieval `k` for Nepali queries:
+
+| Metric | Score | Threshold | Status |
+|---|---|---|---|
+| Faithfulness | 0.871 | ≥0.80 | ✅ |
+| Answer relevance | 1.000 | ≥0.70 | ✅ |
+| Context precision | 0.817 | ≥0.70 | ✅ |
+| Context recall | 0.769 | ≥0.70 | ✅ |
+| Correctness | 0.771 | ≥0.60 | ✅ |
+
+**Overall: PASS.** `baseline.json` records these averages for regression gating.
+
+Per-service `context_recall`: citizenship 1.000, nid 1.000, driving 0.800,
+business 0.643, general 0.500, **passport 0.555**.
+
+### Passport — resolved vs. remaining
+The ground-truth mis-grounding was the main cause and is resolved; within
+passport, the decisive items now score perfectly:
+- **PP-01 (fee)** and **PP-04 (renewal)** → **1.000** (recall/precision/correctness).
+- **NE-04** (documents) → 1.000 recall.
+- **PP-02** (where to apply) → partial (0.33 recall).
+
+Two passport items still fail, and these are **genuine retrieval limits**, not
+dataset errors:
+- **PP-03** (processing time) — retrieval does not surface the "15–45 days /
+  fast-track 2 days" chunk for that phrasing; the top chunks are the
+  application-process/biometric sections, not the processing-time line.
+- **NE-05** (Nepali fee) — cross-lingual retrieval gap: a Nepali "fee" query does
+  not retrieve the English `Nepal passport fee.md` chunk even at k=12. The
+  multilingual MiniLM embedder is weak cross-lingually for such queries.
+
+These two are the honest, defensible residual limitations; improving them needs
+better retrieval (e.g. an English query translation before search, or a bilingual
+retriever) rather than the global `k`.
+

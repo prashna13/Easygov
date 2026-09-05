@@ -41,6 +41,15 @@
     <color name="warning_light">#B45309</color>
     <color name="warningContainer_light">#FEF3C7</color>
 
+    <!-- Dashboard polish (light) -->
+    <color name="brand_navy_light">#111B3E</color>
+    <color name="chipSurface_light">#EDE8E3</color>
+    <color name="iconTeal_light">#0EA5A9</color>
+    <color name="iconPurple_light">#8B5CF6</color>
+    <color name="iconAmber_light">#F59E0B</color>
+    <color name="iconGreen_light">#16A34A</color>
+    <color name="iconNeutral_light">#64748B</color>
+
     <!-- Dark Mode Colors -->
     <color name="primary_dark">#60A5FA</color>
     <color name="onPrimary_dark">#0B1220</color>
@@ -76,6 +85,15 @@
     <color name="onDangerContainer_dark">#FECACA</color>
     <color name="warning_dark">#FBBF24</color>
     <color name="warningContainer_dark">#451A03</color>
+
+    <!-- Dashboard polish (dark) -->
+    <color name="brand_navy_dark">#E2E8F0</color>
+    <color name="chipSurface_dark">#2B2B31</color>
+    <color name="iconTeal_dark">#123B37</color>
+    <color name="iconPurple_dark">#2E2743</color>
+    <color name="iconAmber_dark">#3A2E1E</color>
+    <color name="iconGreen_dark">#1C3A24</color>
+    <color name="iconNeutral_dark">#2A323D</color>
 
     <!-- Common -->
     <color name="black">#FF000000</color>

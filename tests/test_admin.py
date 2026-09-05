@@ -83,3 +83,44 @@ def test_admin_ingest_rejects_empty_file(client, monkeypatch):
         headers={"X-Admin-Token": "expected-token"},
     )
     assert resp.status_code == 422
+
+
+def test_admin_list_ingested_requires_auth(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "expected-token")
+    assert client.get("/admin/ingest/list").status_code == 401
+    assert client.get("/admin/ingest/list", headers={"X-Admin-Token": "wrong"}).status_code == 401
+
+
+def test_admin_list_ingested_with_token(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "expected-token")
+    resp = client.get("/admin/ingest/list", headers={"X-Admin-Token": "expected-token"})
+    assert resp.status_code == 200
+    assert isinstance(resp.json(), list)
+
+
+def test_admin_delete_unknown_file_404(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "expected-token")
+    resp = client.delete(
+        "/admin/ingest",
+        params={"service": "nonexistent", "filename": "ghost.md"},
+        headers={"X-Admin-Token": "expected-token"},
+    )
+    assert resp.status_code == 404
+
+
+def test_admin_delete_missing_service_422(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "expected-token")
+    resp = client.delete(
+        "/admin/ingest",
+        params={"filename": "ghost.md"},
+        headers={"X-Admin-Token": "expected-token"},
+    )
+    assert resp.status_code == 422
+
+
+def test_admin_delete_requires_auth(client, monkeypatch):
+    monkeypatch.setenv("ADMIN_TOKEN", "expected-token")
+    resp = client.delete(
+        "/admin/ingest", params={"service": "passport", "filename": "x.md"}
+    )
+    assert resp.status_code == 401

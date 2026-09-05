@@ -3,7 +3,7 @@ Shared test fixtures for the EasyGov backend suite.
 
 Import-time environment isolation (runs before any test module imports the app):
 
-  * EASYGOV_LITE=1        -> skip loading the heavy embeddings/Chroma/LLM stack
+  * EASYGOV_LITE=1        -> skip loading the heavy embeddings/vector store/LLM stack
   * JWT_SECRET_KEY        -> deterministic signing secret (no db_storage write)
   * DOC_ENCRYPTION_KEY    -> deterministic doc-at-rest key (no db_storage write)
   * EASYGOV_DOC_STORAGE   -> redirect document uploads to a fresh temp dir,

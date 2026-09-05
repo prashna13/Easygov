@@ -103,9 +103,12 @@
 
     <!-- Chips -->
     <style name="Widget.Easygov.FilterChip" parent="Widget.Material3.Chip.Filter">
-        <item name="chipBackgroundColor">@color/surface_light</item>
+        <item name="chipBackgroundColor">@color/chipSurface_light</item>
         <item name="chipStrokeWidth">0dp</item>
-        <item name="chipCornerRadius">16dp</item>
+        <item name="chipCornerRadius">999dp</item>
+        <item name="chipMinHeight">36dp</item>
+        <item name="android:textColor">@color/text_primary_light</item>
+        <item name="checkedIconVisible">false</item>
     </style>
     <style name="Widget.Easygov.AssistChip" parent="Widget.Material3.Chip.Assist">
         <item name="chipBackgroundColor">@color/chipHighlight_light</item>

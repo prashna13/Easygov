@@ -30,7 +30,8 @@ class DashboardAdapter(
         val item = getItem(position)
         holder.name.text = item.title
         holder.icon.setImageResource(item.iconRes)
-        holder.icon.setColorFilter(ContextCompat.getColor(holder.itemView.context, R.color.brand_light))
+        holder.icon.setBackgroundResource(discFor(item.id))
+        holder.icon.setColorFilter(ContextCompat.getColor(holder.itemView.context, R.color.white))
 
         holder.progressBar.progress = item.progressPercent
         holder.progressText.text = if (item.isCompleted) {
@@ -43,6 +44,14 @@ class DashboardAdapter(
             )
         }
         holder.itemView.setOnClickListener { onItemClick(item) }
+    }
+
+    private fun discFor(id: Int): Int = when (id) {
+        1 -> R.drawable.bg_icon_circle_teal          // Citizenship
+        2 -> R.drawable.bg_icon_circle_purple        // NID
+        3 -> R.drawable.bg_icon_circle_amber         // E-Passport
+        7 -> R.drawable.bg_icon_circle_green         // Driving License
+        else -> R.drawable.bg_icon_circle_neutral
     }
 
     class ServiceViewHolder(view: View) : RecyclerView.ViewHolder(view) {

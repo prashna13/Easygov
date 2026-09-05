@@ -1,5 +1,7 @@
 package com.example.easygov
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -116,8 +118,14 @@ class ChatFragment : Fragment() {
                     if (response.isSuccessful && response.body() != null) {
                         val body = response.body()!!
                         var replyMarkdown = body.answer
+                        if (body.sources.isNotEmpty()) {
+                            replyMarkdown += "\n\n**${getString(R.string.chat_sources_header)}**\n"
+                            body.sources.forEach { source ->
+                                replyMarkdown += "- $source\n"
+                            }
+                        }
                         if (body.guideLink != null && body.guideServiceId != null && body.guideServiceId > 0) {
-                            replyMarkdown += "\n\n[${getString(R.string.chat_view_guide)}](easygov://guide/${body.guideServiceId})"
+                            replyMarkdown += "\n[${getString(R.string.chat_view_guide)}](easygov://guide/${body.guideServiceId})"
                         }
                         render(bubble, replyMarkdown)
                     } else {
@@ -190,11 +198,19 @@ class ChatFragment : Fragment() {
         scrollView.post { scrollView.fullScroll(View.FOCUS_DOWN) }
     }
 
-    /** Parses a `easygov://guide/<serviceId>` deep-link and opens the guide. */
+    /** Parses a `easygov://guide/<serviceId>` deep-link or official website http(s) URL. */
     private fun handleGuideLink(link: String) {
-        if (!link.startsWith("easygov://guide/")) return
-        val serviceId = link.removePrefix("easygov://guide/").toIntOrNull() ?: return
-        openGuide(serviceId)
+        if (link.startsWith("easygov://guide/")) {
+            val serviceId = link.removePrefix("easygov://guide/").toIntOrNull() ?: return
+            openGuide(serviceId)
+        } else if (link.startsWith("http://") || link.startsWith("https://")) {
+            try {
+                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(link))
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(context, link, Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     /** Reuses the same guide screen the Dashboard opens — no new screen. */

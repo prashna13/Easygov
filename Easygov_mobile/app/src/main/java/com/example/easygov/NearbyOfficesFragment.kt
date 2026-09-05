@@ -106,13 +106,13 @@ class NearbyOfficesFragment : Fragment() {
             locateAndLoad()
         } else {
             showLoading()
-            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQ_LOCATION)
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQ_LOCATION)
         }
     }
 
     private fun hasLocationPermission(): Boolean =
         ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.ACCESS_COARSE_LOCATION
+            requireContext(), Manifest.permission.ACCESS_FINE_LOCATION
         ) == PackageManager.PERMISSION_GRANTED
 
     override fun onRequestPermissionsResult(
@@ -126,7 +126,7 @@ class NearbyOfficesFragment : Fragment() {
         if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             locateAndLoad()
         } else {
-            val permanent = !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_COARSE_LOCATION)
+            val permanent = !shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION)
             showState(
                 getString(R.string.office_permission_denied),
                 if (permanent) getString(R.string.office_open_settings) else getString(R.string.office_grant_access),
@@ -145,12 +145,12 @@ class NearbyOfficesFragment : Fragment() {
         if (!lm.isProviderEnabled(LocationManager.GPS_PROVIDER) &&
             !lm.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
         ) {
-            showState(getString(R.string.office_location_unavailable), getString(R.string.office_retry), Action.LOCATE)
+            useDefaultLocation("Location services disabled")
             return
         }
 
         if (!hasLocationPermission()) {
-            showState(getString(R.string.office_permission_denied), getString(R.string.office_grant_access), Action.REQUEST_PERMISSION)
+            useDefaultLocation("Location permission not granted")
             return
         }
 
@@ -161,7 +161,7 @@ class NearbyOfficesFragment : Fragment() {
             null
         }
 
-        if (lastKnown != null) {
+        if (lastKnown != null && !isStuckInCalifornia(lastKnown)) {
             loadOffices(lastKnown)
             return
         }
@@ -169,25 +169,42 @@ class NearbyOfficesFragment : Fragment() {
         requestSingleFix(lm)
     }
 
+    private fun isStuckInCalifornia(location: Location): Boolean {
+        return location.latitude > 37.42 && location.latitude < 37.43 &&
+               location.longitude > -122.09 && location.longitude < -122.08
+    }
+
+    private fun useDefaultLocation(reason: String) {
+        val kathmandu = Location("Default").apply {
+            latitude = 27.7172
+            longitude = 85.3240
+        }
+        loadOffices(kathmandu)
+    }
+
     private fun requestSingleFix(lm: LocationManager) {
         singleUpdateListener = object : LocationListener {
             override fun onLocationChanged(location: Location) {
                 finishSingleUpdate()
-                loadOffices(location)
+                if (isStuckInCalifornia(location)) {
+                    useDefaultLocation("Stuck in California")
+                } else {
+                    loadOffices(location)
+                }
             }
         }
 
         mainHandler.postDelayed({
             finishSingleUpdate()
-            showState(getString(R.string.office_location_unavailable), getString(R.string.office_retry), Action.LOCATE)
-        }, LOCATION_TIMEOUT_MS)
+            useDefaultLocation("Location timeout")
+        }, 3000L) // 3-second quick fail for presentation
 
         try {
             lm.requestSingleUpdate(LocationManager.GPS_PROVIDER, singleUpdateListener!!, Looper.getMainLooper())
             lm.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, singleUpdateListener!!, Looper.getMainLooper())
         } catch (e: SecurityException) {
             finishSingleUpdate()
-            showState(getString(R.string.office_permission_denied), getString(R.string.office_grant_access), Action.REQUEST_PERMISSION)
+            useDefaultLocation("Security Exception")
         }
     }
 
@@ -234,7 +251,16 @@ class NearbyOfficesFragment : Fragment() {
         progress.visibility = View.GONE
         stateLayout.visibility = View.GONE
         rvOffices.visibility = View.VISIBLE
-        tvOfficeRadiusHint.text = getString(R.string.office_radius_hint, radiusKm.toInt())
+        
+        // Show context for presentation
+        val isDefault = lastLocation?.provider == "Default" || isStuckInCalifornia(lastLocation!!)
+        val radiusStr = radiusKm.toInt().toString()
+        tvOfficeRadiusHint.text = if (isDefault) {
+            "Location: Kathmandu · Within $radiusStr km"
+        } else {
+            "Showing offices within $radiusStr km"
+        }
+
         tvOfficeRadiusHint.visibility = View.VISIBLE
         officeAdapter.submitList(offices)
     }
@@ -266,9 +292,16 @@ class NearbyOfficesFragment : Fragment() {
                 if (location != null) loadOffices(location) else locateAndLoad()
             }
             Action.REQUEST_PERMISSION -> {
-                requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), REQ_LOCATION)
+                requestPermissions(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), REQ_LOCATION)
             }
             Action.OPEN_SETTINGS -> openAppSettings()
+            Action.USE_KATHMANDU -> {
+                val mockLocation = Location("Mock").apply {
+                    latitude = 27.7172
+                    longitude = 85.3240
+                }
+                loadOffices(mockLocation)
+            }
         }
     }
 
@@ -316,5 +349,5 @@ class NearbyOfficesFragment : Fragment() {
         }
     }
 
-    private enum class Action { LOCATE, LOAD, REQUEST_PERMISSION, OPEN_SETTINGS }
+    private enum class Action { LOCATE, LOAD, REQUEST_PERMISSION, OPEN_SETTINGS, USE_KATHMANDU }
 }

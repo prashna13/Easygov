@@ -131,7 +131,7 @@ class DashboardFragment : Fragment() {
 
         btnUploadBanner.setOnClickListener { pickDocument.launch("*/*") }
         btnDismissBanner.setOnClickListener {
-            dismissApp(bannerAppId)
+            BannerDismiss.dismiss(requireContext(), bannerAppId)
             uploadBanner.visibility = View.GONE
         }
 
@@ -212,8 +212,17 @@ class DashboardFragment : Fragment() {
         showContent()
 
         val recommendedIds = data.recommendations.map { it.id }.toSet()
-        priorityServices = data.recommendations.map { toServiceItem(it, isPriority = true, applications) }
-        allServices = data.services.map { toServiceItem(it, isPriority = it.id in recommendedIds, applications) }
+        
+        // Filter out "Birth Certificate" as data is not available for it yet.
+        val filteredRecommendations = data.recommendations.filter { 
+            !it.title.contains("Birth Certificate", ignoreCase = true) 
+        }
+        val filteredServices = data.services.filter { 
+            !it.title.contains("Birth Certificate", ignoreCase = true) 
+        }
+
+        priorityServices = filteredRecommendations.map { toServiceItem(it, isPriority = true, applications) }
+        allServices = filteredServices.map { toServiceItem(it, isPriority = it.id in recommendedIds, applications) }
 
         tvName.text = data.userName
 
@@ -221,7 +230,10 @@ class DashboardFragment : Fragment() {
         chipPriority.setText(getString(R.string.dash_priority_count_live, priorityServices.size))
         chipServices.setText(getString(R.string.dash_service_count_live, allServices.size))
 
-        bindHero(data.recommendedNextStep ?: data.recommendations.firstOrNull(), applications)
+        val filteredNextStep = data.recommendedNextStep?.takeIf { 
+            !it.title.contains("Birth Certificate", ignoreCase = true) 
+        }
+        bindHero(filteredNextStep ?: filteredRecommendations.firstOrNull(), applications)
 
         bindUploadBanner(applications)
 
@@ -229,9 +241,15 @@ class DashboardFragment : Fragment() {
     }
 
     private fun bindUploadBanner(applications: List<ApplicationProgress>) {
-        val dismissed = dismissedAppIds()
+        val dismissed = BannerDismiss.dismissedIds(requireContext())
+        // Only prompt for services genuinely completed through the step flow.
+        // On-boarding marks services COMPLETED but with no steps — those shouldn't
+        // ask the user to "upload the document" (they may have mentioned they own it).
         val completed = applications.firstOrNull {
-            it.status == "COMPLETED" && it.applicationId != -1 && it.applicationId !in dismissed
+            it.status == "COMPLETED" &&
+                it.applicationId != -1 &&
+                it.applicationId !in dismissed &&
+                it.steps.isNotEmpty()
         }
         if (completed == null) {
             uploadBanner.visibility = View.GONE
@@ -248,9 +266,16 @@ class DashboardFragment : Fragment() {
         val app = applications.firstOrNull { it.serviceId == gs.id }
         val completed = app?.steps?.count { it.status == "COMPLETED" } ?: 0
         val total = app?.steps?.size ?: DEFAULT_TOTAL_STEPS
+
+        val displayTitle = if (gs.title.equals("Citizenship Copy", ignoreCase = true)) {
+            "Citizenship"
+        } else {
+            gs.title
+        }
+
         return ServiceItem(
             id = gs.id,
-            title = gs.title,
+            title = displayTitle,
             category = gs.category,
             iconRes = iconFor(gs.id),
             completedSteps = completed,
@@ -267,6 +292,14 @@ class DashboardFragment : Fragment() {
         else -> R.drawable.ic_service
     }
 
+    private fun discFor(id: Int): Int = when (id) {
+        1 -> R.drawable.bg_icon_circle_teal    // Citizenship
+        2 -> R.drawable.bg_icon_circle_purple  // NID
+        3 -> R.drawable.bg_icon_circle_amber   // E-Passport
+        7 -> R.drawable.bg_icon_circle_green   // Driving License
+        else -> R.drawable.bg_icon_circle_neutral
+    }
+
     private fun bindHero(nextStep: GovService?, applications: List<ApplicationProgress>) {
         if (nextStep == null) {
             nextStepBanner.visibility = View.GONE
@@ -274,9 +307,10 @@ class DashboardFragment : Fragment() {
             return
         }
         heroService = toServiceItem(nextStep, isPriority = true, applications)
-        tvNextStepTitle.text = nextStep.title
+        tvNextStepTitle.text = heroService!!.title
         ivHeroIcon.setImageResource(heroService!!.iconRes)
-        ivHeroIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.brand_light))
+        ivHeroIcon.setBackgroundResource(discFor(nextStep.id))
+        ivHeroIcon.setColorFilter(androidx.core.content.ContextCompat.getColor(requireContext(), R.color.white))
         piHeroProgress.progress = heroService!!.progressPercent
         tvHeroProgress.text = progressLabel(heroService!!)
         nextStepBanner.visibility = View.VISIBLE
@@ -329,26 +363,6 @@ class DashboardFragment : Fragment() {
         swipeRefresh.isRefreshing = true
     }
 
-    // ── Upload banner (save a newly completed service's document) ─────────────
-
-    private val bannerPrefs by lazy {
-        requireContext().getSharedPreferences("easygov_banner_prefs", Context.MODE_PRIVATE)
-    }
-
-    private fun dismissedAppIds(): Set<Int> =
-        bannerPrefs.getString("dismissed_app_ids", "")
-            ?.split(",")
-            ?.mapNotNull { it.toIntOrNull() }
-            ?.toSet()
-            ?: emptySet()
-
-    private fun dismissApp(appId: Int) {
-        if (appId <= 0) return
-        val set = dismissedAppIds().toMutableSet()
-        set.add(appId)
-        bannerPrefs.edit().putString("dismissed_app_ids", set.joinToString(",")).apply()
-    }
-
     private fun showLabelDialog(uri: Uri) {
         val input = EditText(requireContext()).apply {
             hint = getString(R.string.doc_pick_label)
@@ -392,7 +406,7 @@ class DashboardFragment : Fragment() {
                 override fun onResponse(call: Call<UserDocument>, response: Response<UserDocument>) {
                     if (response.isSuccessful && response.body() != null) {
                         Toast.makeText(requireContext(), getString(R.string.doc_uploaded_vault), Toast.LENGTH_SHORT).show()
-                        dismissApp(bannerAppId)
+                        BannerDismiss.dismiss(requireContext(), bannerAppId)
                         uploadBanner.visibility = View.GONE
                     } else {
                         Toast.makeText(requireContext(), getString(R.string.doc_upload_fail), Toast.LENGTH_LONG).show()

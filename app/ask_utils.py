@@ -52,6 +52,15 @@ _INSTRUCTIONS_EN = (
     'Set "topic" to whichever of the four services the question is about, or null if none apply.\n'
     'Set "suggest_guide" to true whenever the question concerns a procedure, requirement, '
     "document, fee, or step \u2014 i.e. whenever pointing the user to the full guide would help.\n\n"
+    "GROUNDING & SCOPE RULES (most important):\n"
+    "Answer ONLY from the provided CONTEXT. Do not use general knowledge; never invent "
+    "dates, fees, steps, procedures or details that are not in the CONTEXT.\n"
+    "If the provided CONTEXT is IRRELEVANT to the question, or does not contain enough "
+    "information to answer it, reply with a short, polite message that you can only help "
+    "with the government services available in the app, and set \"topic\": null and "
+    "\"suggest_guide\": false. Do not answer from general knowledge.\n"
+    "Do NOT refuse a question just because the topic is not on a fixed list of services — "
+    "the CONTEXT is the source of truth: if it contains a relevant answer, answer from it.\n\n"
     "CONTEXT (might be in Nepali or English):\n{context}\n\n"
     "QUESTION:\n{question}\n"
     "ANSWER IN ENGLISH."
@@ -66,6 +75,10 @@ _INSTRUCTIONS_NE = (
     '"topic" \u092a\u094d\u0930\u0936\u094d\u0928 \u0915\u0941\u0928 \u091a\u093e\u0930 \u0938\u0947\u0935\u093e\u092e\u0927\u094d\u092f\u0947 \u090f\u0901\u091f\u093e\u0938\u0901\u0917 \u0938\u092e\u094d\u092c\u0928\u094d\u0927\u093f\u0924 \u091b \u092d\u0928\u0947 \u0924\u094d\u092f\u094b \u092e\u093e\u0928\u092e\u093e \u0938\u0947\u091f \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0924, \u0915\u0941\u0928\u0948 \u092a\u0928\u093f \u0932\u093e\u0917\u0942 \u0928\u092d\u090f null \u0930\u093e\u0916\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0924\u0964 topic \u092e\u093e\u0928\u0939\u0930\u0942 \u0938\u0927\u0948\u0902 \u0905\u0902\u0917\u094d\u0930\u0947\u091c\u0940\u092e\u093e \u0930\u093e\u0916\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0924\u0964\n'
     '"answer" \u0930 "suggest_guide" \u0915\u0941\u091e\u094d\u091c\u0940\u0939\u0930\u0942 \u0905\u0902\u0917\u094d\u0930\u0947\u091c\u0940\u092e\u0948 \u0930\u093e\u0916\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0924 \u2014 \u0915\u0947\u0935\u0932 "answer" \u0915\u094b \u0938\u093e\u092e\u0917\u094d\u0930\u0940 \u0930 \u0928\u093f\u0930\u094d\u0926\u0947\u0936\u0928\u0939\u0930\u0942 \u0928\u0947\u092a\u093e\u0932\u0940\u092e\u093e\u0964\n'
     '"suggest_guide" \u092a\u094d\u0930\u0936\u094d\u0928 \u092a\u094d\u0930\u0915\u094d\u0930\u093f\u092f\u093e, \u0906\u0935\u0936\u094d\u092f\u0915\u0924\u093e, \u0915\u093e\u0917\u091c\u093e\u0924, \u0936\u0941\u0932\u094d\u0915, \u0935\u093e \u091a\u0930\u0923\u0938\u0901\u0917 \u0938\u092e\u094d\u092c\u0928\u094d\u0927\u093f\u0924 \u092d\u090f \u2014 \u0905\u0930\u094d\u0925\u093e\u0924\u094d \u092a\u094d\u0930\u092f\u094b\u0917\u0915\u0930\u094d\u0924\u093e\u0932\u093e\u0908 \u092a\u0942\u0930\u093e \u0917\u093e\u0907\u0921\u0924\u0930\u094d\u092b \u092a\u0920\u093e\u0909\u0928\u0941 \u0938\u0939\u092f\u094b\u0917\u0940 \u0939\u0941\u0928\u0947 \u0939\u0930\u0947\u0915 \u0905\u0935\u0938\u094d\u0925\u093e\u092e\u093e true \u0938\u0947\u091f \u0917\u0930\u094d\u0928\u0941\u0939\u094b\u0938\u094d\u0924\u0964\n\n'
+    "सबैभन्दा महत्त्वपूर्ण — नियमहरू:\n"
+    "जवाफ केवल दिइएको CONTEXT बाट मात्र दिनुहोस्। सामान्य ज्ञान प्रयोग नगर्नुहोस्; CONTEXT मा नभएको मिति, शुल्क, चरण वा विवरण कहिल्यै नबनाउनुहोस्।\n"
+    "यदि दिइएको CONTEXT प्रश्नसँग असम्बन्धित छ, वा जवाफ दिन पर्याप्त जानकारी छैन भने, तपाईं एपमा उपलब्ध सरकारी सेवाहरूमा मात्र सहयोग गर्न सक्नुहुन्छ भनी छोटो, विनम्र सन्देश दिनुहोस्, र \"topic\": null र \"suggest_guide\": false सेट गर्नुहोस्। सामान्य ज्ञानबाट जवाफ नदिनुहोस्।\n"
+    "कुनै निश्चित सेवा सूचीमा नभएकै कारणले प्रश्नलाई अस्वीकार नगर्नुहोस् — CONTEXT नै स्रोत हो: यदि यसमा सान्दर्भिक जवाफ छ भने त्यसबाट जवाफ दिनुहोस्।\n\n"
     "\u0938\u0928\u094d\u0926\u0930\u094d\u092d (\u0928\u0947\u092a\u093e\u0932\u0940 \u0935\u093e \u0905\u0902\u0917\u094d\u0930\u0947\u091c\u0940\u092e\u093e \u0939\u0941\u0928 \u0938\u0915\u094d\u091b):\n{context}\n\n"
     "\u092a\u094d\u0930\u0936\u094d\u0928:\n{question}\n"
     "\u0909\u0924\u094d\u0924\u0930 \u0928\u0947\u092a\u093e\u0932\u0940\u092e\u093e \u0926\u093f\u0928\u0941\u0939\u094b\u0938\u094d\u0924\u0964"
@@ -105,17 +118,49 @@ def parse_ask_json(raw_text: str) -> dict:
         return {"answer": raw_text.strip(), "topic": None, "suggest_guide": False}
 
 
+OFFICIAL_GOV_CITATIONS = {
+    "passport": "[Department of Passports](https://nepalpassport.gov.np)",
+    "nid": "[DoNIDCR - National ID Portal](https://donidcr.gov.np)",
+    "citizenship": "[Ministry of Home Affairs](https://moha.gov.np)",
+    "driving_license": "[Department of Transport Management](https://dotm.gov.np)",
+    "business_registration": "[Office of Company Registrar](https://ocr.gov.np)",
+    "pan": "[Inland Revenue Department](https://ird.gov.np)",
+}
+
+
 def build_ask_response(
     parsed: dict,
     sources: List[str],
     guide_service_id: Optional[int] = None,
 ) -> dict:
-    """Assemble the /ask response: concise answer + optional guide deep-link."""
+    """Assemble the /ask response: concise answer + single official government site citation + optional guide deep-link."""
     topic = parsed.get("topic")
     suggest_guide = parsed.get("suggest_guide", False)
+
+    single_source = None
+
+    if topic and topic in OFFICIAL_GOV_CITATIONS:
+        single_source = OFFICIAL_GOV_CITATIONS[topic]
+
+    if not single_source:
+        for src in sources:
+            src_lower = src.lower()
+            for top, citation in OFFICIAL_GOV_CITATIONS.items():
+                top_normalized = top.replace("_", "")
+                if top in src_lower or top_normalized in src_lower.replace("_", ""):
+                    single_source = citation
+                    break
+            if single_source:
+                break
+
+    if not single_source and sources:
+        single_source = sources[0]
+
+    final_sources = [single_source] if single_source else []
+
     return {
         "answer": parsed.get("answer", ""),
-        "sources": sources,
+        "sources": final_sources,
         "guide_link": GUIDE_ROUTES.get(topic) if (suggest_guide and topic) else None,
         "guide_service_id": guide_service_id if (suggest_guide and topic) else None,
     }

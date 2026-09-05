@@ -10,6 +10,8 @@ import androidx.fragment.app.Fragment
 import com.example.easygov.model.ApplicationProgress
 import com.example.easygov.model.ServiceDetailResponse
 import com.example.easygov.network.RetrofitClient
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.noties.markwon.Markwon
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -27,6 +29,8 @@ class ServiceDetailFragment : Fragment() {
     private var readOnlyMode = false
     private var applicationId: Int? = null
     private var isApplying = false
+    private var completedDialogShown = false
+    private lateinit var markwon: Markwon
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,6 +43,8 @@ class ServiceDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        markwon = Markwon.create(requireContext())
+
         val serviceId = arguments?.getInt("service_id", -1) ?: -1
         val title = arguments?.getString("service_title") ?: "Service Details"
         val category = arguments?.getString("service_category") ?: "General"
@@ -48,7 +54,8 @@ class ServiceDetailFragment : Fragment() {
         view.findViewById<TextView>(R.id.tvDetailTitle).text = title
         view.findViewById<TextView>(R.id.tvDetailCategory).text = category
         if (!description.isNullOrEmpty()) {
-            view.findViewById<TextView>(R.id.tvDetailDescription).text = description
+            val tvDesc = view.findViewById<TextView>(R.id.tvDetailDescription)
+            markwon.setMarkdown(tvDesc, description)
         }
         showGuidance(view, guidance)
 
@@ -94,7 +101,12 @@ class ServiceDetailFragment : Fragment() {
                                 // Refresh header from the (localized) API detail —
                                 // used when deep-linking from the chat guide chip.
                                 detail.service?.let { svc ->
-                                    view.findViewById<TextView>(R.id.tvDetailTitle).text = svc.title
+                                    val displayTitle = if (svc.title.equals("Citizenship Copy", ignoreCase = true)) {
+                                        "Citizenship"
+                                    } else {
+                                        svc.title
+                                    }
+                                    view.findViewById<TextView>(R.id.tvDetailTitle).text = displayTitle
                                     view.findViewById<TextView>(R.id.tvDetailCategory).text = svc.category
                                 }
                                 showGuidance(view, detail.service?.guidance ?: guidance)
@@ -120,7 +132,7 @@ class ServiceDetailFragment : Fragment() {
         val guidancePanel = view.findViewById<View>(R.id.guidancePanel)
         val tvDetailGuidance = view.findViewById<TextView>(R.id.tvDetailGuidance)
         if (!guidance.isNullOrBlank()) {
-            tvDetailGuidance.text = guidance
+            markwon.setMarkdown(tvDetailGuidance, guidance)
             guidancePanel.visibility = View.VISIBLE
         }
     }
@@ -199,6 +211,19 @@ class ServiceDetailFragment : Fragment() {
         else -> "citizenship"
     }
 
+    private fun showCompletedDialog() {
+        val title = arguments?.getString("service_title") ?: "This service"
+        // Guard against showing again if the view is rebuilt.
+        if (completedDialogShown) return
+        completedDialogShown = true
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(R.string.service_completed_title)
+            .setMessage(getString(R.string.service_completed_msg, title))
+            .setPositiveButton(R.string.view_anyway, null)
+            .setNegativeButton(R.string.go_back) { _, _ -> parentFragmentManager.popBackStack() }
+            .show()
+    }
+
     private fun applyPrerequisiteState(
         detail: ServiceDetailResponse,
         prereqBlockPanel: View,
@@ -212,7 +237,12 @@ class ServiceDetailFragment : Fragment() {
         }
 
         detail.application?.let { app ->
-            if (app.status != "COMPLETED") {
+            if (app.status == "COMPLETED") {
+                // Already finished — do not allow re-applying; offer read-only view.
+                btnApplyNow.isEnabled = false
+                btnApplyNow.text = getString(R.string.status_completed)
+                showCompletedDialog()
+            } else {
                 applicationId = app.applicationId
                 btnApplyNow.text = getString(R.string.view_my_application)
             }

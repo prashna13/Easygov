@@ -55,6 +55,10 @@
     <string name="upload_now">अहिले अपलोड गर्नुहोस्</string>
     <string name="later">पछि</string>
     <string name="doc_uploaded_vault">कागजात तपाईंको भल्टमा सुरक्षित भयो।</string>
+    <string name="service_completed_title">सेवा पूरा भयो</string>
+    <string name="service_completed_msg">तपाईंले %1$s पहिले नै पूरा गर्नुभयो। तलको गाइड केवल सन्दर्भका लागि हो। जे भए पनि हेर्न चाहनुहुन्छ?</string>
+    <string name="view_anyway">जे भए पनि हेर्नुहोस्</string>
+    <string name="go_back">पछि फर्कनुहोस्</string>
     <string name="close">✕</string>
     <string name="dash_upload_banner_title">आफ्नो नयाँ कागजात सुरक्षित गर्नुहोस्</string>
     <string name="dash_upload_banner_msg">तपाईंले %1$s पूरा गर्नुभयो — भविष्यमा प्रयोगका लागि भल्टमा राख्न भर्खरै प्राप्त कागजात अपलोड गर्नुहोस्।</string>
@@ -76,6 +80,7 @@
     <string name="chat_history">च्याट इतिहास</string>
     <string name="no_history">कुनै इतिहास भेटिएन</string>
     <string name="chat_view_guide">पूर्ण मार्गदर्शन हेर्नुहोस्</string>
+    <string name="chat_sources_header">आधिकारिक स्रोतहरू:</string>
     <string name="chat_guide_title">सेवा गाइड</string>
 
     <!-- Login / Register -->

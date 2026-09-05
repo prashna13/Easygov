@@ -95,7 +95,16 @@ def test_build_response_with_topic_and_guide():
     )
     assert resp["guide_link"] == GUIDE_ROUTES["nid"]
     assert resp["guide_service_id"] == 2
-    assert resp["sources"] == ["file.pdf"]
+    assert "[DoNIDCR - National ID Portal](https://donidcr.gov.np)" in resp["sources"]
+
+
+def test_build_response_official_citations_passport():
+    resp = build_ask_response(
+        {"answer": "Short", "topic": "passport", "suggest_guide": True},
+        [],
+        guide_service_id=3,
+    )
+    assert resp["sources"] == ["[Department of Passports](https://nepalpassport.gov.np)"]
 
 
 def test_build_response_suggest_false_omits_guide():

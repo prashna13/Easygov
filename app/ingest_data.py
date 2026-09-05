@@ -13,6 +13,17 @@ from langchain_chroma import Chroma
 
 load_dotenv()
 
+# ── SOURCE NORMALISATION ──────────────────────────────────────────────────────
+def _canonical_source(path: str) -> str:
+    """Return a stable, absolute, lowercased source identifier so the
+    SQLRecordManager recognises the same file across runs regardless of path
+    casing or relative/absolute form."""
+    try:
+        return str(Path(path).resolve()).lower()
+    except Exception:
+        return str(path).lower()
+
+
 # ── CHUNK TAG PARSER ──────────────────────────────────────────────────────────
 def parse_chunk_tag(text: str) -> dict:
     """Extract chunk_id and topic from [CHUNK_TAG: ...] lines in the PDF."""
@@ -68,7 +79,7 @@ def ingest_docs():
     print(f"🔧 Loading embedding model: {model_name}")
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
-    # 2. Initialize ChromaDB
+    # 2. Initialize Vector Store
     vector_db = Chroma(
         persist_directory=persist_directory,
         embedding_function=embeddings
@@ -126,7 +137,12 @@ def ingest_docs():
     service_counts = {}
 
     for chunk in chunks:
-        source_path = chunk.metadata.get("source", "")
+        # Normalise the source path (absolute + lowercased) so the SQLRecordManager
+        # recognises the same file across runs even if the path casing or
+        # relative/absolute form differs — otherwise repeated ingestions duplicate
+        # chunks (the record manager sees them as different sources).
+        chunk.metadata["source"] = _canonical_source(chunk.metadata.get("source", ""))
+        source_path = chunk.metadata["source"]
 
         # Detect service from subfolder name
         service = detect_service_from_path(source_path, data_path_abs)

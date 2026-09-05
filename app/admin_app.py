@@ -152,3 +152,32 @@ with tab_ingest:
 
     st.divider()
     st.markdown("**Existing service folders** (derived from service titles, ASCII): `citizenship`, `nid`, `passport`, `driving_license`, ... You may also create a new folder name.")
+
+    st.divider()
+    st.subheader("Manage ingested files")
+    st.caption("Deleting a file removes it from disk and wipes its chunks from the vector store, so the chatbot no longer answers about it.")
+
+    try:
+        files = requests.get(f"{backend}/admin/ingest/list", headers=_headers(token), timeout=60).json()
+    except requests.RequestException as e:
+        st.error(f"Could not list ingested files: {e}")
+        files = []
+    if not files:
+        st.info("No ingested files yet.")
+    for f in files:
+        c1, c2, c3 = st.columns([5, 1, 1])
+        c1.markdown(f"**`{f['service']}/`{f['filename']}** — {f['size_bytes']:,} B")
+        c2.markdown(f"{f['modified'][:10]}")
+        if c3.button("🗑 Delete", key=f"del-{f['service']}-{f['filename']}"):
+            try:
+                r = requests.delete(
+                    f"{backend}/admin/ingest",
+                    params={"service": f["service"], "filename": f["filename"]},
+                    headers=_headers(token), timeout=120,
+                )
+                r.raise_for_status()
+                res = r.json()
+                st.success(res.get("message", "Deleted"))
+                st.rerun()
+            except requests.RequestException as e:
+                st.error(f"Delete failed: {e}")

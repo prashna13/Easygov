@@ -10,6 +10,7 @@ app.main so the FastAPI process does not reload the model on every request.
 
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 
 from fastapi import Header, HTTPException, status
@@ -51,6 +52,16 @@ def require_admin(x_admin_token: str = Header(default="", alias="X-Admin-Token")
             detail="Invalid admin token.",
         )
     return True
+
+
+def _canonical_source(path: str) -> str:
+    """Return a stable, absolute, lowercased source identifier so the
+    SQLRecordManager recognises the same file across runs regardless of path
+    casing or relative/absolute form."""
+    try:
+        return str(Path(path).resolve()).lower()
+    except Exception:
+        return str(path).lower()
 
 
 def _splitter() -> RecursiveCharacterTextSplitter:
@@ -146,7 +157,7 @@ def ingest_uploaded_document(
     dest = service_dir / safe_name
     dest.write_bytes(data)
 
-    # Parse the saved file into LangChain Documents (PDF via PyMuPDF).
+    # Parse the saved file into document objects (PDF or markdown format).
     if safe_name.lower().endswith(".md"):
         text = data.decode("utf-8", errors="ignore")
         docs = [Document(page_content=text, metadata={"source": str(dest)})]
@@ -159,8 +170,69 @@ def ingest_uploaded_document(
     chunks = _splitter().split_documents(docs)
     version = version or "1.0"
     for c in chunks:
-        _attach_meta(c, service, "en", version, c.metadata.get("source", str(dest)))
+        source = _canonical_source(c.metadata.get("source") or str(dest))
+        _attach_meta(c, service, "en", version, source)
 
     stats = _index_chunks(chunks, embeddings, vector_db)
     logger.info("Ingested %s for service '%s' (%s chunks): %s", safe_name, service, len(chunks), stats)
     return {"indexed": len(chunks), "stats": stats}
+
+
+# ── LIST / DELETE INGESTED FILES ──────────────────────────────────────────────
+
+def list_ingested_documents() -> list[dict]:
+    """List every file currently under data_source/ (service folder + file)."""
+    out = []
+    if not DATA_SOURCE_DIR.is_dir():
+        return out
+    for svc_dir in sorted(DATA_SOURCE_DIR.iterdir()):
+        if not svc_dir.is_dir():
+            continue
+        service = svc_dir.name.lower()
+        for f in sorted(svc_dir.iterdir()):
+            if f.is_file():
+                out.append({
+                    "service": service,
+                    "filename": f.name,
+                    "size_bytes": f.stat().st_size,
+                    "modified": datetime.fromtimestamp(f.stat().st_mtime).isoformat(),
+                })
+    return out
+
+
+def delete_ingested_document(service: str, filename: str, vector_db) -> dict:
+    """Delete an ingested file AND its chunks from the vector store.
+
+    The chatbot answers from the vector store, so once its chunks are gone it can
+    no longer answer about the deleted document. The source file is also removed.
+    """
+    service_folder = (service or "").strip().lower().replace(" ", "_")
+    if not service_folder:
+        raise HTTPException(status_code=422, detail="A service folder is required.")
+
+    svc_dir = DATA_SOURCE_DIR / service_folder
+    target = None
+    if svc_dir.is_dir():
+        for f in svc_dir.iterdir():
+            if f.is_file() and f.name.lower() == (filename or "").lower():
+                target = f
+                break
+    if target is None:
+        raise HTTPException(status_code=404, detail="File not found in that service folder.")
+
+    # Remove every chunk whose canonical source points at this file. Count first
+    # (since vector delete(where=...) returns None), then delete by explicit ids.
+    source = _canonical_source(str(target))
+    chunks_deleted = 0
+    try:
+        matching = vector_db.get(where={"source": source})
+        chunk_ids = matching.get("ids") or []
+        if chunk_ids:
+            vector_db.delete(ids=chunk_ids)
+        chunks_deleted = len(chunk_ids)
+    except Exception as exc:  # noqa: BLE001 - never block deletion on a store failure
+        logger.warning("Vector-store delete failed for %s: %s", source, exc)
+
+    target.unlink(missing_ok=True)
+    logger.info("Deleted ingested file %s (%s chunk(s))", source, chunks_deleted)
+    return {"service": service_folder, "filename": target.name, "chunks_deleted": chunks_deleted}

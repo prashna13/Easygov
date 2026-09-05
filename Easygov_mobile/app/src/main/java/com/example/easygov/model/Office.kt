@@ -39,5 +39,8 @@ data class Office(
 
     // Straight-line (haversine) distance from the query point, in km.
     @SerializedName("distance_km")
-    val distanceKm: Double? = null
+    val distanceKm: Double? = null,
+
+    @SerializedName("note")
+    val note: String? = null
 )

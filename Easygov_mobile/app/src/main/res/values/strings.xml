@@ -68,6 +68,10 @@
     <string name="upload_now">Upload now</string>
     <string name="later">Later</string>
     <string name="doc_uploaded_vault">Document saved to your vault.</string>
+    <string name="service_completed_title">Service Completed</string>
+    <string name="service_completed_msg">You have already completed %1$s. The guide below is for reference only. Do you want to view it anyway?</string>
+    <string name="view_anyway">View anyway</string>
+    <string name="go_back">Go back</string>
     <string name="close">✕</string>
     <string name="dash_upload_banner_title">Save your new document</string>
     <string name="dash_upload_banner_msg">You completed %1$s — upload the document you just received to your vault for future use.</string>
@@ -89,6 +93,7 @@
     <string name="chat_history">Chat History</string>
     <string name="no_history">No history found</string>
     <string name="chat_view_guide">View full guide</string>
+    <string name="chat_sources_header">Official Sources:</string>
     <string name="chat_guide_title">Service Guide</string>
     <string name="chat_welcome_robot">EasyGov Assistant</string>
     <string name="chat_welcome_title">How can we help you today?</string>

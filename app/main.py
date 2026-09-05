@@ -1,8 +1,11 @@
 import sys
 import os
+import re
 import uuid
 from datetime import date
 from pathlib import Path
+
+from langchain_core.documents import Document
 
 # Ensure project root is in sys.path when script is executed directly
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
@@ -13,11 +16,17 @@ from pydantic import BaseModel
 from typing import List, Optional
 from sqlalchemy import func
 from sqlalchemy.orm import Session
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_chroma import Chroma
-from langchain_openai import ChatOpenAI
 from dotenv import load_dotenv
 from langdetect import detect, LangDetectException
+
+# Heavy ML imports are deferred until needed (see the non-lite block below) so the
+# backend test suite can run under EASYGOV_LITE=1 without pulling in torch /
+# transformers / the embedding model. They are imported only when the app runs
+# normally.
+if os.getenv("EASYGOV_LITE", "").strip() != "1":
+    from langchain_huggingface import HuggingFaceEmbeddings
+    from langchain_chroma import Chroma
+    from langchain_openai import ChatOpenAI
 
 from app.database import get_db
 from app.models import (
@@ -50,6 +59,8 @@ from app.admin_utils import (
     require_admin,
     reindex_service_guidance,
     ingest_uploaded_document,
+    list_ingested_documents,
+    delete_ingested_document,
 )
 
 load_dotenv()
@@ -57,7 +68,7 @@ load_dotenv()
 app = FastAPI(title="EasyGov Nepal API")
 
 # Tests set EASYGOV_LITE=1 to skip loading the heavyweight ML stack (embeddings,
-# Chroma, LLM) so the test suite stays fast and offline. The /ask, admin
+# vector store, LLM) so the test suite stays fast and offline. The /ask, admin
 # reindex and ingest routes still work normally at runtime (flag off by default);
 # they simply are not exercised by the isolated unit/integration suite.
 _LITE = os.getenv("EASYGOV_LITE", "").strip() == "1"
@@ -67,17 +78,17 @@ vector_db = None
 llm = None
 
 if not _LITE:
-    # 1. Setup the same Local Embeddings as Day 2
+    # 1. Setup the Local Embeddings model
     model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     embeddings = HuggingFaceEmbeddings(model_name=model_name)
 
-    # 2. Load the existing ChromaDB from disk
+    # 2. Load the existing vector store from disk
     vector_db = Chroma(
         persist_directory="db_storage/chroma_db",
         embedding_function=embeddings,
     )
 
-# 3. Initialize OpenRouter LLM
+# 3. Initialize LLM client
 openrouter_model = os.getenv("OPENROUTER_MODEL", "openai/gpt-oss-120b")
 openrouter_base_url = os.getenv("OPENROUTER_BASE_URL", "https://openrouter.ai/api/v1")
 openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
@@ -93,6 +104,101 @@ if not _LITE:
 
 # 4. Retrieval settings (RAG)
 retriever_k = int(os.getenv("RETRIEVER_K", "6"))
+# Cross-lingual retrieval is weaker, so Nepali queries retrieve a wider net
+# (only affects multilingual chatbot queries — English / other services unchanged).
+MULTILINGUAL_RETRIEVER_K = int(os.getenv("RETRIEVER_K_MULTILINGUAL", "12"))
+
+
+# ── Hybrid retrieval (vector + lexical) ───────────────────────────────────────
+# Vector similarity alone can miss short keyword queries (e.g. "NID fee") because
+# the relevant chunk (a small "FEES" section) embeds far from the query while the
+# broad service overviews dominate. We complement it with a cheap lexical pass that
+# also matches each chunk's service tag, so keyword-focused queries surface the
+# right chunk. Built lazily on first call; no dependency (no rank_bm25 needed).
+
+_corpus_cache = None
+_corpus_size = -1
+
+
+def clear_corpus_cache():
+    """Clear the lexical corpus cache so the next query re-reads from the DB."""
+    global _corpus_cache, _corpus_size
+    _corpus_cache = None
+    _corpus_size = -1
+
+
+def _get_corpus():
+    """Return a lazy list of (doc_id, text, metadata) for every stored chunk.
+
+    Refreshed automatically when the collection grows (e.g. a doc ingested into
+    the running process), so lexical search also sees newly added chunks.
+    """
+    global _corpus_cache, _corpus_size
+    data = vector_db.get()
+    total = len(data.get("ids") or [])
+    if _corpus_cache is None or total != _corpus_size:
+        ids = data.get("ids") or []
+        docs = data.get("documents") or []
+        metas = data.get("metadatas") or []
+        _corpus_cache = list(zip(ids, docs, [m or {} for m in metas]))
+        _corpus_size = total
+    return _corpus_cache
+
+
+def _lexical_search(query: str, top_k: int):
+    """Rank stored chunks by how many query terms appear in their text + service tag."""
+    _STOP = {
+        "what", "is", "the", "a", "an", "of", "for", "to", "in", "on", "i", "my",
+        "how", "do", "does", "much", "many", "and", "or", "can", "need", "answer",
+    }
+    terms = set(re.findall(r"[a-z0-9\u0900-\u097f]+", query.lower())) - _STOP
+    if not terms:
+        return []
+    scored = []
+    for cid, text, meta in _get_corpus():
+        haystack = f"{text} {meta.get('service') or ''}".lower()
+        score = sum(1 for t in terms if t in haystack)
+        if score:
+            scored.append((score, text, meta))
+    scored.sort(key=lambda x: (-x[0], len(x[1])))
+    return scored[:top_k]
+
+
+def _translate_to_english(text: str) -> str:
+    """Translate a (Nepali) user question to English so retrieval matches the
+    English knowledge base. The answer is still produced in the original language."""
+    try:
+        from deep_translator import GoogleTranslator
+        translated = GoogleTranslator(source='ne', target='en').translate(text)
+        return translated.strip() if translated else text
+    except Exception as e:
+        print(f"[EasyGov] Translation error: {e}")
+        return text
+
+
+def hybrid_retrieve(query: str, k: int):
+    """Combine vector + lexical retrieval into a single ordered context list.
+
+    Lexical matches (keyword-precise, e.g. "fee" chunks) are surfaced first so
+    short keyword questions aren't buried under broad service overviews; vector
+    results fill the rest.
+    """
+    lex = _lexical_search(query, k)
+    vector_docs = vector_db.similarity_search(query, k=k)
+
+    seen = set()
+    result = []
+    for _score, text, meta in lex:
+        if text in seen:
+            continue
+        seen.add(text)
+        result.append(Document(page_content=text, metadata=meta))
+    for d in vector_docs:
+        if d.page_content in seen:
+            continue
+        seen.add(d.page_content)
+        result.append(d)
+    return result[:k]
 
 # 5. User document storage — path is env-configurable so tests can redirect it
 # to a temp dir and never touch the real db_storage/documents folder.
@@ -613,8 +719,13 @@ async def ask_government_bot(
             query_lang = "en"
         answer_lang = "NEPALI" if query_lang == "ne" else "ENGLISH"
 
-        # Use similarity_search() to get documents and metadata
-        docs = vector_db.similarity_search(user_question, k=retriever_k)
+        # Use hybrid retrieval (vector + lexical) to get documents and metadata.
+        # Cross-lingual retrieval is weaker, so Nepali queries get a wider net AND,
+        # for retrieval purposes only, the question is translated to English so it
+        # matches the English knowledge base. The answer stays in the user's language.
+        retrieval_k = MULTILINGUAL_RETRIEVER_K if query_lang == "ne" else retriever_k
+        retrieval_question = _translate_to_english(user_question) if query_lang == "ne" else user_question
+        docs = hybrid_retrieve(retrieval_question, retrieval_k)
 
         # Extract unique sources from metadata
         sources = []
@@ -1112,6 +1223,7 @@ def admin_update_service(
     folder = svc.title.lower().replace(" ", "_")
     if payload.reindex_rag and (svc.guidance or svc.guidance_ne):
         result = reindex_service_guidance(svc, folder, embeddings, vector_db)
+        clear_corpus_cache()
         return AdminIngestResult(
             service=folder,
             version="guidance",
@@ -1155,6 +1267,7 @@ def admin_ingest_document(
         embeddings=embeddings,
         vector_db=vector_db,
     )
+    clear_corpus_cache()
     return AdminIngestResult(
         service=service_folder,
         version=version or "1.0",
@@ -1163,6 +1276,29 @@ def admin_ingest_document(
         message=result.get("message"),
     )
 
+
+@app.get("/admin/ingest/list")
+def admin_list_ingested(_: bool = Depends(require_admin)):
+    """List every ingested source file (service folder + filename)."""
+    return list_ingested_documents()
+
+
+@app.delete("/admin/ingest", response_model=AdminIngestResult)
+def admin_delete_ingested(
+    service: str = Query(..., min_length=1),
+    filename: str = Query(..., min_length=1),
+    _: bool = Depends(require_admin),
+):
+    """Delete an ingested file and its chunks so the chatbot stops answering about it."""
+    result = delete_ingested_document(service, filename, vector_db)
+    clear_corpus_cache()
+    return AdminIngestResult(
+        service=result["service"],
+        version=None,
+        indexed=result.get("chunks_deleted", 0),
+        stats=None,
+        message=f"Deleted {result.get('chunks_deleted', 0)} chunk(s) and removed the file.",
+    )
 
 if __name__ == "__main__":
     import uvicorn

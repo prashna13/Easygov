@@ -39,7 +39,9 @@
                         android:layout_weight="1"
                         android:text="@string/dash_brand"
                         android:textAppearance="@style/TextAppearance.Easygov.AppTitle"
-                        android:textColor="@color/text_primary_light" />
+                        android:textColor="@color/brand_navy_light"
+                        android:textSize="26sp"
+                        android:textStyle="bold" />
 
                     <LinearLayout
                         android:layout_width="wrap_content"
@@ -87,12 +89,11 @@
                 <!-- Search bar -->
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="52dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="20dp"
-                    android:background="@drawable/bg_input"
-                    android:elevation="1dp"
+                    android:layout_height="50dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginEnd="16dp"
+                    android:background="@drawable/bg_search_pill"
                     android:gravity="center_vertical"
                     android:orientation="horizontal"
                     android:paddingStart="16dp"
@@ -144,7 +145,8 @@
                             android:layout_height="wrap_content"
                             android:checkable="true"
                             android:checked="true"
-                            android:textColor="@color/nav_item_color" />
+                            app:chipIconVisible="false"
+                            android:textColor="@color/text_primary_light" />
 
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipServices"
@@ -154,7 +156,8 @@
                             android:layout_marginStart="8dp"
                             android:checkable="true"
                             android:checked="true"
-                            android:textColor="@color/nav_item_color" />
+                            app:chipIconVisible="false"
+                            android:textColor="@color/text_primary_light" />
                     </LinearLayout>
                 </HorizontalScrollView>
 
@@ -163,13 +166,13 @@
                     android:id="@+id/uploadBanner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginTop="12dp"
+                    android:layout_marginEnd="16dp"
                     android:visibility="gone"
-                    app:cardBackgroundColor="@color/success_light"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="@color/successContainer_light"
+                    app:cardCornerRadius="12dp"
+                    app:cardElevation="1dp"
                     app:strokeWidth="0dp">
 
                     <LinearLayout
@@ -177,7 +180,7 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:padding="16dp">
+                        android:padding="10dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -189,26 +192,30 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="@string/dash_upload_banner_title"
-                                android:textAppearance="?attr/textAppearanceTitleMedium"
-                                android:textColor="@color/text_primary_light"
+                                android:textAppearance="?attr/textAppearanceTitleSmall"
+                                android:textColor="@color/onSuccessContainer_light"
                                 android:textStyle="bold" />
 
                             <TextView
                                 android:id="@+id/tvUploadBannerMsg"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="4dp"
+                                android:layout_marginTop="2dp"
                                 android:text="@string/dash_upload_banner_msg"
-                                android:textAppearance="?attr/textAppearanceBodyMedium"
-                                android:textColor="@color/text_secondary_light" />
+                                android:textAppearance="?attr/textAppearanceBodySmall"
+                                android:textColor="@color/onSuccessContainer_light" />
                         </LinearLayout>
 
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnUploadBanner"
                             style="@style/Widget.Easygov.Button"
                             android:layout_width="wrap_content"
-                            android:layout_height="44dp"
+                            android:layout_height="36dp"
                             android:layout_marginStart="8dp"
+                            android:minWidth="0dp"
+                            android:paddingStart="16dp"
+                            android:paddingEnd="16dp"
+                            android:textSize="13sp"
                             android:text="@string/upload_now" />
 
                         <TextView
@@ -219,10 +226,10 @@
                             android:background="?attr/selectableItemBackgroundBorderless"
                             android:clickable="true"
                             android:focusable="true"
-                            android:padding="8dp"
+                            android:padding="6dp"
                             android:text="@string/close"
-                            android:textAppearance="?attr/textAppearanceTitleMedium"
-                            android:textColor="@color/text_secondary_light" />
+                            android:textAppearance="?attr/textAppearanceTitleSmall"
+                            android:textColor="@color/onSuccessContainer_light" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 
@@ -248,40 +255,25 @@
                         android:orientation="vertical"
                         android:padding="16dp">
 
-                        <TextView
-                            android:id="@+id/tvHeroBadge"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:background="@drawable/bg_stat_chip"
-                            android:paddingStart="10dp"
-                            android:paddingTop="4dp"
-                            android:paddingEnd="10dp"
-                            android:paddingBottom="4dp"
-                            android:text="@string/dash_next_step_label"
-                            android:textAllCaps="false"
-                            android:textAppearance="?attr/textAppearanceLabelSmall"
-                            android:textColor="@color/onSuccessContainer_light" />
-
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="14dp"
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
                             <FrameLayout
                                 android:layout_width="56dp"
                                 android:layout_height="56dp"
-                                android:background="@drawable/bg_icon_well"
-                                android:padding="12dp">
+                                android:background="@drawable/bg_icon_circle_neutral">
 
                                 <ImageView
                                     android:id="@+id/ivHeroIcon"
                                     android:layout_width="match_parent"
                                     android:layout_height="match_parent"
                                     android:contentDescription="@string/service_icon"
+                                    android:padding="12dp"
                                     app:srcCompat="@drawable/ic_service"
-                                    app:tint="@color/brand_light" />
+                                    app:tint="@color/brand_navy_light" />
                             </FrameLayout>
 
                             <LinearLayout
@@ -292,14 +284,25 @@
                                 android:orientation="vertical">
 
                                 <TextView
+                                    android:id="@+id/tvHeroBadge"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/dash_next_step_label"
+                                    android:textAllCaps="true"
+                                    android:textAppearance="?attr/textAppearanceLabelSmall"
+                                    android:textColor="@color/success_light"
+                                    android:textStyle="bold" />
+
+                                <TextView
                                     android:id="@+id/tvNextStepTitle"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
                                     android:ellipsize="end"
                                     android:maxLines="2"
                                     android:text="@string/dash_next_step_placeholder"
                                     android:textAppearance="?attr/textAppearanceTitleLarge"
-                                    android:textColor="@color/text_primary_light"
+                                    android:textColor="@color/brand_navy_light"
                                     android:textStyle="bold" />
 
                                 <TextView
@@ -319,35 +322,40 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <com.google.android.material.progressindicator.LinearProgressIndicator
-                                android:id="@+id/piHeroProgress"
-                                style="@style/Widget.Easygov.LinearProgressDeterminate"
+                            <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:max="100"
-                                app:indicatorColor="@color/success_light"
-                                app:trackColor="@color/surfaceContainer_light" />
+                                android:orientation="vertical">
 
-                            <TextView
-                                android:id="@+id/tvHeroProgress"
+                                <com.google.android.material.progressindicator.LinearProgressIndicator
+                                    android:id="@+id/piHeroProgress"
+                                    style="@style/Widget.Easygov.LinearProgressDeterminate"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:max="100"
+                                    app:indicatorColor="@color/brand_light"
+                                    app:trackColor="@color/surfaceVariant_light" />
+
+                                <TextView
+                                    android:id="@+id/tvHeroProgress"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:text="@string/dash_progress_zero"
+                                    android:textAppearance="?attr/textAppearanceBodySmall"
+                                    android:textColor="@color/text_secondary_light" />
+                            </LinearLayout>
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnHeroAction"
+                                style="@style/Widget.Easygov.Button"
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginStart="10dp"
-                                android:text="@string/dash_progress_zero"
-                                android:textAppearance="?attr/textAppearanceBodySmall"
-                                android:textColor="@color/text_secondary_light" />
+                                android:layout_height="44dp"
+                                android:layout_marginStart="12dp"
+                                android:text="@string/dash_view_requirements"
+                                app:cornerRadius="999dp" />
                         </LinearLayout>
-
-                        <com.google.android.material.button.MaterialButton
-                            android:id="@+id/btnHeroAction"
-                            style="@style/Widget.Easygov.Button"
-                            android:layout_width="wrap_content"
-                            android:layout_height="42dp"
-                            android:layout_gravity="end"
-                            android:layout_marginTop="12dp"
-                            android:text="@string/dash_view_requirements"
-                            app:cornerRadius="20dp" />
                     </LinearLayout>
                 </com.google.android.material.card.MaterialCardView>
 

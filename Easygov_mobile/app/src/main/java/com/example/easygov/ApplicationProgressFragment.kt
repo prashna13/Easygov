@@ -237,6 +237,9 @@ class ApplicationProgressFragment : Fragment() {
                 override fun onResponse(call: Call<UserDocument>, response: Response<UserDocument>) {
                     if (response.isSuccessful && response.body() != null) {
                         Toast.makeText(requireContext(), getString(R.string.doc_uploaded_vault), Toast.LENGTH_SHORT).show()
+                        // Uploaded from the completion screen — clear the dashboard
+                        // "save your new document" banner for this application too.
+                        BannerDismiss.dismiss(requireContext(), applicationId)
                     } else {
                         Toast.makeText(requireContext(), getString(R.string.doc_upload_fail), Toast.LENGTH_LONG).show()
                     }
