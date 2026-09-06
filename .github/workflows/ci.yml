@@ -80,8 +80,10 @@ jobs:
       - name: Run Espresso tests on an emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
-          api-level: 34
+          api-level: 30
+          target: google_apis
           arch: x86_64
-          profile: pixel_6
-          script: ./gradlew :app:connectedDebugAndroidTest
-          working-directory: Easygov_mobile
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: cd Easygov_mobile && ./gradlew :app:connectedDebugAndroidTest
