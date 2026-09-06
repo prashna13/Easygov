@@ -4,7 +4,8 @@ import android.os.Bundle
 import androidx.test.core.app.ActivityScenario
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers.isDisplayed
+import androidx.test.espresso.matcher.ViewMatchers.Visibility
+import androidx.test.espresso.matcher.ViewMatchers.withEffectiveVisibility
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Test
@@ -31,18 +32,18 @@ class AuthFormsTest {
     @Test
     fun loginForm_showsKeyFields() {
         launch(LoginFragment())
-        onView(withId(R.id.etEmail)).check(matches(isDisplayed()))
-        onView(withId(R.id.etPassword)).check(matches(isDisplayed()))
-        onView(withId(R.id.btnLogin)).check(matches(isDisplayed()))
-        onView(withId(R.id.tvSignUp)).check(matches(isDisplayed()))
+        onView(withId(R.id.etEmail)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.etPassword)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.btnLogin)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.tvSignUp)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 
     @Test
     fun registerForm_showsKeyFields() {
         launch(RegisterFragment())
-        onView(withId(R.id.etFullName)).check(matches(isDisplayed()))
-        onView(withId(R.id.etDateOfBirth)).check(matches(isDisplayed()))
-        onView(withId(R.id.etEmail)).check(matches(isDisplayed()))
-        onView(withId(R.id.btnRegister)).check(matches(isDisplayed()))
+        onView(withId(R.id.etFullName)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.etDateOfBirth)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.etEmail)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
+        onView(withId(R.id.btnRegister)).check(matches(withEffectiveVisibility(Visibility.VISIBLE)))
     }
 }
