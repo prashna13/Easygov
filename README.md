@@ -1,4 +1,4 @@
-# 🇳🇵 EasyGov Nepal
+#  EasyGov Nepal
 
 > **AI-Powered Navigation & Automated Workflow Tracking for Public Services in Nepal**
 
@@ -15,7 +15,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 * **Bilingual Support:** Understands and responds in both **English** and **Nepali** (via automatic language detection using `langdetect`).
 * **Source Attribution:** Cites specific ingested document sources alongside responses.
 
-### 📋 Prerequisite & Progress Tracking Engine
+###  Prerequisite & Progress Tracking Engine
 * **Dependency Validation:** Enforces prerequisites (e.g., citizenship required before applying for a passport or NID).
 * **Step-by-Step Guidance:** Interactive checklists for required documents, office visits, online forms, and fees.
 * **Status Lifecycle:** Tracks application states (`NOT_STARTED`, `IN_PROGRESS`, `SUBMITTED`, `COMPLETED`).
@@ -38,7 +38,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+##  Architecture & Tech Stack
 
 ```
                      ┌────────────────────────────────────────┐
@@ -126,7 +126,7 @@ EasyGov_project/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### 1. Prerequisites
 * **Python**: `3.10` or higher
@@ -235,7 +235,7 @@ python eval/run_eval.py --limit 5
 
 ---
 
-## 📡 API Endpoints Overview
+##  API Endpoints Overview
 
 | Method | Endpoint | Description |
 |---|---|---|
