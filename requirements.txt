@@ -13,7 +13,7 @@ langchain-text-splitters
 PyMuPDF
 unstructured
 # ── Database Layer ────────────────────────────────
-sqlalchemy
+SQLAlchemy[asyncio]>=2.0
 passlib[bcrypt]
 python-jose[cryptography]
 email-validator
