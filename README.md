@@ -8,9 +8,9 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 
 ---
 
-## 🌟 Key Features
+##  Key Features
 
-### 🤖 Multilingual AI Chatbot (RAG-Driven)
+###  Multilingual AI Chatbot (RAG-Driven)
 * **Context-Aware Assistance:** Uses hybrid retrieval (Chroma vector search + term lexical fallback) over curated official government guidelines.
 * **Bilingual Support:** Understands and responds in both **English** and **Nepali** (via automatic language detection using `langdetect`).
 * **Source Attribution:** Cites specific ingested document sources alongside responses.
@@ -20,25 +20,25 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 * **Step-by-Step Guidance:** Interactive checklists for required documents, office visits, online forms, and fees.
 * **Status Lifecycle:** Tracks application states (`NOT_STARTED`, `IN_PROGRESS`, `SUBMITTED`, `COMPLETED`).
 
-### 🔐 Encrypted Private Document Vault
+###  Encrypted Private Document Vault
 * **Security First:** User documents (citizenship scans, photographs, forms) are stored using secure encryption (`doc_crypto`).
 * **Instant Verification:** Easily attach stored vault documents to service steps.
 
-### 📱 Native Android Application (`Easygov_mobile`)
+### Native Android Application (`Easygov_mobile`)
 * Built with modern **Kotlin**, **Jetpack Navigation**, **Material Design 3**, **Retrofit**, and **View Binding**.
 * Features interactive service catalog, live onboarding flow, offline session management, dynamic server URL configuration, chatbot interface with history drawer, and GIS location finder for nearby government offices.
 
-### 🛠️ Streamlit Admin Portal & Web UI
+###  Streamlit Admin Portal & Web UI
 * **User Web Assistant (`app/frontend.py`):** Lightweight web-based search and assistant interface.
 * **Admin Management (`app/admin_app.py`):** Update service metadata, modify guidance text with auto-reindexing into vector storage, and ingest new source PDFs/Markdown files.
 
-### 📊 RAGAS-Style RAG Evaluation Harness (`eval/`)
+### RAGAS-Style RAG Evaluation Harness (`eval/`)
 * In-house evaluation suite evaluating 5 core metrics: **Faithfulness**, **Answer Relevance**, **Correctness**, **Context Precision**, and **Context Recall**.
 * Automated regression gating using locked baselines (`baseline.json`).
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## Architecture & Tech Stack
 
 ```
                      ┌────────────────────────────────────────┐
@@ -82,7 +82,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
 EasyGov_project/
@@ -126,7 +126,7 @@ EasyGov_project/
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### 1. Prerequisites
 * **Python**: `3.10` or higher
@@ -253,7 +253,7 @@ python eval/run_eval.py --limit 5
 
 ---
 
-## 🤝 Contributing
+##  Contributing
 
 Contributions are welcome! Please follow these steps:
 1. Fork the project repository.
