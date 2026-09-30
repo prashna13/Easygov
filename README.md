@@ -1,4 +1,4 @@
-# 🇳🇵 EasyGov Nepal
+# EasyGov Nepal
 
 > **AI-Powered Navigation & Automated Workflow Tracking for Public Services in Nepal**
 
@@ -206,7 +206,7 @@ EasyGov_project/
 
 ---
 
-## 🧪 Testing & RAG Evaluation
+##  Testing & RAG Evaluation
 
 ### Running Unit & Integration Tests
 Tests run in `EASYGOV_LITE=1` mode to bypass heavy ML model initialization for instant execution:
