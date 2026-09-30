@@ -1,4 +1,4 @@
-# EasyGov Nepal
+# 🇳🇵 EasyGov Nepal
 
 > **AI-Powered Navigation & Automated Workflow Tracking for Public Services in Nepal**
 
@@ -15,7 +15,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 * **Bilingual Support:** Understands and responds in both **English** and **Nepali** (via automatic language detection using `langdetect`).
 * **Source Attribution:** Cites specific ingested document sources alongside responses.
 
-### Prerequisite & Progress Tracking Engine
+### 📋 Prerequisite & Progress Tracking Engine
 * **Dependency Validation:** Enforces prerequisites (e.g., citizenship required before applying for a passport or NID).
 * **Step-by-Step Guidance:** Interactive checklists for required documents, office visits, online forms, and fees.
 * **Status Lifecycle:** Tracks application states (`NOT_STARTED`, `IN_PROGRESS`, `SUBMITTED`, `COMPLETED`).
@@ -24,7 +24,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 * **Security First:** User documents (citizenship scans, photographs, forms) are stored using secure encryption (`doc_crypto`).
 * **Instant Verification:** Easily attach stored vault documents to service steps.
 
-### Native Android Application (`Easygov_mobile`)
+###  Native Android Application (`Easygov_mobile`)
 * Built with modern **Kotlin**, **Jetpack Navigation**, **Material Design 3**, **Retrofit**, and **View Binding**.
 * Features interactive service catalog, live onboarding flow, offline session management, dynamic server URL configuration, chatbot interface with history drawer, and GIS location finder for nearby government offices.
 
@@ -32,13 +32,13 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 * **User Web Assistant (`app/frontend.py`):** Lightweight web-based search and assistant interface.
 * **Admin Management (`app/admin_app.py`):** Update service metadata, modify guidance text with auto-reindexing into vector storage, and ingest new source PDFs/Markdown files.
 
-### RAGAS-Style RAG Evaluation Harness (`eval/`)
+###  RAGAS-Style RAG Evaluation Harness (`eval/`)
 * In-house evaluation suite evaluating 5 core metrics: **Faithfulness**, **Answer Relevance**, **Correctness**, **Context Precision**, and **Context Recall**.
 * Automated regression gating using locked baselines (`baseline.json`).
 
 ---
 
-## Architecture & Tech Stack
+## 🛠️ Architecture & Tech Stack
 
 ```
                      ┌────────────────────────────────────────┐
@@ -82,7 +82,7 @@ The platform combines a **Multilingual RAG (Retrieval-Augmented Generation) AI C
 
 ---
 
-## Repository Structure
+##  Repository Structure
 
 ```
 EasyGov_project/
@@ -126,7 +126,7 @@ EasyGov_project/
 
 ---
 
-##  Getting Started
+## 🚀 Getting Started
 
 ### 1. Prerequisites
 * **Python**: `3.10` or higher
